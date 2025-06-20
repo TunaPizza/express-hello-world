@@ -18,7 +18,8 @@ app.ws('/ws', (ws, req) => {
     connects.forEach((socket) => {
       if (socket.readyState === 1) {
         // Check if the connection is open
-        socket.send(message + "♡")
+        const text =  message.toString();
+        socket.send(text + "♡")
       }
     })
   })
