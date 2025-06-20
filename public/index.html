@@ -123,7 +123,7 @@
             }
           }
           if (msg.type === 'chat') {
-            const { id, text } = msg
+            const { id, text } = JSON.parse(msg.data)
             const messageList = document.querySelector('.messages')
             const li = document.createElement('li')
             if (id === myId) {
