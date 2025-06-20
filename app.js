@@ -14,11 +14,13 @@ app.ws('/ws', (ws, req) => {
 
   ws.on('message', (message) => {
     console.log('Received:', message)
+    const addmessage = message + '♡'
 
     connects.forEach((socket) => {
       if (socket.readyState === 1) {
         // Check if the connection is open
-        socket.send(message)
+        
+        socket.send(addmessage)
       }
     })
   })
