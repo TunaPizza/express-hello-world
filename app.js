@@ -14,12 +14,24 @@ app.ws('/ws', (ws, req) => {
 
   ws.on('message', (message) => {
     console.log('Received:', message)
-    const addmessage = message + '♡'
+    let data
+
+    try {
+      data = JSON.parse(message)
+    } catch (e) {
+      console.error('Invalid JSON:', message)
+      return
+    }
+
+    // type が "chat" のときだけ text を加工する
+    if (data.type === 'chat' && typeof data.text === 'string') {
+      data.text += '♡'
+    }
+
+    const addmessage = JSON.stringify(data)
 
     connects.forEach((socket) => {
       if (socket.readyState === 1) {
-        // Check if the connection is open
-        
         socket.send(addmessage)
       }
     })
