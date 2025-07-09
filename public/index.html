@@ -51,7 +51,7 @@
 
   <script>
     function main() {
-      const myId = self.crypto.randomUUID().substr(0, 8)
+      const myId = prompt("ユーザー名を入力してください")?.trim() || "名無し";
       const host = location.origin.replace(/^http/, 'ws')
       const ws = new WebSocket(host + '/ws')
       //const myId = self.crypto.randomUUID().substr(0, 8)
