@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>絵しりとりゲーム設定</title>
+  <title>絵しりとりチャット</title>
   <style>
-    .hidden { display: none; }
     .chat {
       display: flex;
       flex-direction: column;
@@ -18,7 +17,9 @@
       padding: 0;
       margin: 0;
     }
-    .form { display: flex; }
+    .form {
+      display: flex;
+    }
     .input {
       flex: 1;
       padding: 10px;
@@ -33,131 +34,104 @@
   </style>
 </head>
 <body>
-  <!-- 設定画面 -->
-  <div id="setup">
-    <h2>🎮 絵しりとり ゲーム設定</h2>
-    <label>ユーザー名: <input id="username" /></label><br />
-    <label>ターン数: 
-      <button onclick="change('turns', -1)">−</button>
-      <span id="turns">3</span>
-      <button onclick="change('turns', 1)">＋</button>
-    </label><br />
-    <label>ラウンド数: 
-      <button onclick="change('rounds', -1)">−</button>
-      <span id="rounds">2</span>
-      <button onclick="change('rounds', 1)">＋</button>
-    </label><br /><br />
-    <button id="btnStartGame">ゲーム開始</button>
+  <div class="chat">
+    <ul class="messages"></ul>
+    <form class="form">
+      <input class="input" autocomplete="off" />
+      <button class="submit">Send</button>
+    </form>
   </div>
+  <canvas id="canvas" width="600" height="600" style="border: solid 1px black"></canvas>
 
-  <!-- メイン画面 -->
-  <div id="mainUI" class="hidden">
-    <div class="chat">
-      <ul class="messages"></ul>
-      <form class="form">
-        <input class="input" autocomplete="off" />
-        <button class="submit">Send</button>
-      </form>
-    </div>
-    <canvas id="canvas" width="600" height="600" style="border: solid 1px black"></canvas>
-  </div>
+  <script>
+    function main() {
+      const myId = prompt("ユーザー名を入力してください")?.trim() || "名無し";
+      const host = location.origin.replace(/^http/, 'ws');
+      const ws = new WebSocket(host + '/ws');
 
-<script>
-  let myId = "", turns = 3, rounds = 2;
-  let ws;
+      ws.onopen = () => {
+        ws.send(JSON.stringify({ type: 'join', id: myId }));
+      };
 
-  function change(type, delta) {
-    if (type === 'turns') {
-      turns = Math.max(1, turns + delta);
-      document.getElementById('turns').textContent = turns;
-    } else if (type === 'rounds') {
-      rounds = Math.max(1, rounds + delta);
-      document.getElementById('rounds').textContent = rounds;
-    }
-  }
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
 
-  document.getElementById('btnStartGame').onclick = () => {
-    myId = document.getElementById('username').value.trim();
-    if (!myId) {
-      alert("ユーザー名を入力してください");
-      return;
-    }
+        if (msg.type === 'chat') {
+          appendMessage(msg.id, msg.text, myId);
+        } else if (msg.type === 'join') {
+          appendMessage(msg.id, "join", myId);
+        } else if (msg.type === 'paint') {
+          const { x, y, control } = msg;
+          if (control === 'mousedown') mousedown();
+          else if (control === 'mouseup') mouseup();
+          else if (control === 'mousemove') mousemove(x, y);
+          else if (control === 'mouseout') mouseout();
+        }
+      };
 
-    // WebSocket接続
-    const host = location.origin.replace(/^http/, 'ws');
-    ws = new WebSocket(host + '/ws');
-
-    ws.onopen = () => {
-      // joinメッセージを送信
-      ws.send(JSON.stringify({ type: 'join', id: myId, turns, rounds }));
-    };
-
-    ws.onmessage = (event) => {
-      const msg = JSON.parse(event.data);
-
-      if (msg.type === 'start') {
-        // 設定画面を隠してメイン画面を表示
-        document.getElementById('setup').classList.add('hidden');
-        document.getElementById('mainUI').classList.remove('hidden');
-      }
-
-      if (msg.type === 'chat') {
+      function appendMessage(id, text, myId) {
+        const messageList = document.querySelector('.messages');
         const li = document.createElement('li');
-        li.textContent = (msg.id === myId ? '(自分) ' : msg.id + ': ') + msg.text;
-        document.querySelector('.messages').appendChild(li);
+        if (id === myId) {
+          li.textContent = `(自分) ${text}`;
+        } else {
+          li.textContent = `${id} ${text}`;
+        }
+        messageList.appendChild(li);
       }
 
-      if (msg.type === 'paint') {
-        const { x, y, control } = msg;
-        if (control === 'mousedown') mousedown();
-        else if (control === 'mouseup') mouseup();
-        else if (control === 'mousemove') mousemove(x, y);
-        else if (control === 'mouseout') mouseout();
+      // チャット送信
+      const form = document.querySelector('.form');
+      form.onsubmit = (e) => {
+        e.preventDefault();
+        const input = document.querySelector('.input');
+        const text = input.value;
+        if (!text) return;
+        ws.send(JSON.stringify({ id: myId, text, type: 'chat' }));
+        input.value = '';
+        input.focus();
+      };
+
+      // 描画処理
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      let drawing = false;
+
+      canvas.addEventListener('mousedown', (e) => sendDrawing(e.offsetX, e.offsetY, 'mousedown'));
+      function mousedown() {
+        drawing = true;
+        ctx.beginPath();
       }
-    };
 
-    ws.onerror = (e) => console.error('WebSocket error:', e);
+      canvas.addEventListener('mousemove', (e) => {
+        if (drawing) sendDrawing(e.offsetX, e.offsetY, 'mousemove');
+      });
+      function mousemove(x, y) {
+        if (drawing) {
+          ctx.lineTo(x, y);
+          ctx.stroke();
+        } else {
+          ctx.moveTo(x, y);
+        }
+      }
 
-    // チャット送信
-    document.querySelector('.form').onsubmit = function (e) {
-      e.preventDefault();
-      const input = document.querySelector('.input');
-      const text = input.value;
-      ws.send(JSON.stringify({ id: myId, text, type: 'chat' }));
-      input.value = '';
-      input.focus();
-    };
+      canvas.addEventListener('mouseup', (e) => sendDrawing(e.offsetX, e.offsetY, 'mouseup'));
+      function mouseup() {
+        drawing = false;
+        ctx.beginPath();
+      }
 
-    // 描画処理
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    let drawing = false;
+      canvas.addEventListener('mouseout', (e) => sendDrawing(e.offsetX, e.offsetY, 'mouseout'));
+      function mouseout() {
+        drawing = false;
+      }
 
-    canvas.addEventListener('mousedown', (e) => sendDrawing(e.offsetX, e.offsetY, 'mousedown'));
-    function mousedown() { drawing = true; ctx.beginPath(); }
-
-    canvas.addEventListener('mousemove', (e) => {
-      if (drawing) sendDrawing(e.offsetX, e.offsetY, 'mousemove');
-    });
-    function mousemove(x, y) { 
-      if (drawing) { 
-        ctx.lineTo(x, y); 
-        ctx.stroke(); 
-      } else { 
-        ctx.moveTo(x, y); 
-      } 
+      function sendDrawing(x, y, control) {
+        ws.send(JSON.stringify({ x, y, control, type: 'paint' }));
+      }
     }
 
-    canvas.addEventListener('mouseup', () => sendDrawing(0, 0, 'mouseup'));
-    function mouseup() { drawing = false; ctx.beginPath(); }
-
-    canvas.addEventListener('mouseout', () => sendDrawing(0, 0, 'mouseout'));
-    function mouseout() { drawing = false; }
-
-    function sendDrawing(x, y, control) {
-      ws.send(JSON.stringify({ x, y, control, type: 'paint' }));
-    }
-  };
-</script>
+    main();
+  </script>
 </body>
 </html>
