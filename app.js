@@ -1,64 +1,49 @@
-const express = require('express')
-const expressWs = require('express-ws')
+const express = require('express');
+const expressWs = require('express-ws');
 
-const app = express()
-expressWs(app)
+const app = express();
+expressWs(app);
 
-const port = process.env.PORT || 3001
-let connects = []
-let players = [] // 参加者リスト
+const port = process.env.PORT || 3001;
+let connects = [];
 
-app.use(express.static('public'))
+app.use(express.static('public'));
+
+function broadcast(msg) {
+  const json = JSON.stringify(msg);
+  connects.forEach((socket) => {
+    if (socket.readyState === 1) {
+      socket.send(json);
+    }
+  });
+}
 
 app.ws('/ws', (ws, req) => {
-  connects.push(ws)
+  connects.push(ws);
 
   ws.on('message', (message) => {
-    let data
+    let data;
     try {
-      data = JSON.parse(message)
+      data = JSON.parse(message);
     } catch (e) {
-      console.error('Invalid JSON:', message)
-      return
+      return;
     }
 
     if (data.type === 'join') {
-      // 参加者を追加
-      players.push({ id: data.id, turns: data.turns, rounds: data.rounds })
-      // 全員に参加者リストを送る
-      broadcast({ type: 'players', players })
-      // ゲーム開始を促すメッセージを送る例（必要に応じて）
-      // broadcast({ type: 'info', text: `${data.id}さんが参加しました` })
-      // すぐ開始するならstartも送る
-      // broadcast({ type: 'start' })
-      return
+      // 入室メッセージを全員に通知
+      broadcast(data);
+      return;
     }
 
-    if (data.type === 'start') {
-      // 全員にゲーム開始通知を送る
-      broadcast({ type: 'start' })
-      return
-    }
-
-    // チャットやペイントはそのまま全員にブロードキャスト
-    broadcast(data)
-  })
+    // paint/chatなどはそのままbroadcast
+    broadcast(data);
+  });
 
   ws.on('close', () => {
-    connects = connects.filter((conn) => conn !== ws)
-    // playersの整理も必要
-  })
-})
-
-function broadcast(msg) {
-  const json = JSON.stringify(msg)
-  connects.forEach((socket) => {
-    if (socket.readyState === 1) {
-      socket.send(json)
-    }
-  })
-}
+    connects = connects.filter((conn) => conn !== ws);
+  });
+});
 
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`)
-})
+  console.log(`Server running at http://localhost:${port}`);
+});
