@@ -1,49 +1,47 @@
-const express = require('express');
-const expressWs = require('express-ws');
+const express = require('express')
+const expressWs = require('express-ws')
 
-const app = express();
-expressWs(app);
+const app = express()
+expressWs(app)
 
-const port = process.env.PORT || 3001;
-let connects = [];
+const port = process.env.PORT || 3001
+let connects = []
 
-app.use(express.static('public'));
-
-function broadcast(msg) {
-  const json = JSON.stringify(msg);
-  connects.forEach((socket) => {
-    if (socket.readyState === 1) {
-      socket.send(json);
-    }
-  });
-}
+app.use(express.static('public'))
 
 app.ws('/ws', (ws, req) => {
-  connects.push(ws);
+  connects.push(ws)
 
   ws.on('message', (message) => {
-    let data;
+    console.log('Received:', message)
+    let data
+
     try {
-      data = JSON.parse(message);
+      data = JSON.parse(message)
     } catch (e) {
-      return;
+      console.error('Invalid JSON:', message)
+      return
     }
 
-    if (data.type === 'join') {
-      // 入室メッセージを全員に通知
-      broadcast(data);
-      return;
-    }
+    // //タイプがチャットの時だけ反映
+    // if (data.type === 'chat' && typeof data.text === 'string') {
+    //   data.text += '♡'//後ろに♡を付ける
+    // }
 
-    // paint/chatなどはそのままbroadcast
-    broadcast(data);
-  });
+    const addmessage = JSON.stringify(data)
+
+    connects.forEach((socket) => {
+      if (socket.readyState === 1) {
+        socket.send(addmessage)
+      }
+    })
+  })
 
   ws.on('close', () => {
-    connects = connects.filter((conn) => conn !== ws);
-  });
-});
+    connects = connects.filter((conn) => conn !== ws)
+  })
+})
 
 app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
+  console.log(`Server is running on http://localhost:${port}`)
+})
