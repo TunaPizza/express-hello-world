@@ -23,10 +23,10 @@ app.ws('/ws', (ws, req) => {
       return
     }
 
-    //タイプがチャットの時だけ反映
-    if (data.type === 'chat' && typeof data.text === 'string') {
-      data.text += '♡'//後ろに♡を付ける
-    }
+    // //タイプがチャットの時だけ反映
+    // if (data.type === 'chat' && typeof data.text === 'string') {
+    //   data.text += '♡'//後ろに♡を付ける
+    // }
 
     const addmessage = JSON.stringify(data)
 
