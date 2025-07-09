@@ -158,11 +158,14 @@
         const textDiv = document.createElement('div');
         textDiv.className = 'text';
         textDiv.textContent = text;
+        nameDiv.className = 'username';
         if (id === myId) {
           li.className = 'my-message';
+          nameDiv.textContent = id;
 
         } else {
           li.className = 'other-message';
+          nameDiv.textContent = id;
 
         }
         li.appendChild(nameDiv);
