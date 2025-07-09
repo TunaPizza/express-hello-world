@@ -20,6 +20,14 @@
       margin: 0;
     }
 
+    .my-message {
+      margin-left: auto;
+    }
+
+    .other-message {
+      margin-right: auto;
+    }
+
     .form {
       display: flex;
     }
@@ -143,8 +151,10 @@
         const messageList = document.querySelector('.messages');
         const li = document.createElement('li');
         if (id === myId) {
-          li.textContent = `(${id})自` + text
+          li.className = 'my-message';
+          li.textContent = id + `自` + text
         } else {
+          li.className = 'other-message';
           li.textContent = id + ': ' + text
         }
         messageList.appendChild(li);
