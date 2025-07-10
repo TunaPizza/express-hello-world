@@ -110,10 +110,14 @@
         if (confirmed) {
           chatArea.style.display = 'none'; // チャットを非表示
           canvas.style.display = 'block';  // キャンバスを表示
+
+          document.getElementById('roundSelect').parentElement.style.display = 'none';
+          document.getElementById('turnSelect').parentElement.style.display = 'none';
+          document.getElementById('startButton').style.display = 'none';
         }
       };
 
-      
+
       const ctx = canvas.getContext('2d')
 
       let drawing = false
