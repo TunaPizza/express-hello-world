@@ -96,6 +96,20 @@
       const startButton = document.getElementById('startButton');
       const chatArea = document.querySelector('.chat');
 
+      // 入室人数表示を更新する関数
+      function updatePlayerCountDisplay() {
+        let countSpan = document.getElementById('playerCountSpan');
+
+        if (!countSpan) {
+          countSpan = document.createElement('span');
+          countSpan.id = 'playerCountSpan';
+          countSpan.style.marginLeft = '10px';
+          startButton.parentNode.insertBefore(countSpan, startButton.nextSibling);
+        }
+
+        countSpan.textContent = `入室人数: ${players.size} 人`;
+      }
+
       const canvas = document.getElementById('canvas')
 
       // ゲーム開始ボタンイベント
@@ -116,6 +130,7 @@
           document.getElementById('roundSelect').parentElement.style.display = 'none';
           document.getElementById('turnSelect').parentElement.style.display = 'none';
           document.getElementById('startButton').style.display = 'none';
+          document.getElementById('playerCountSpan').style.display = 'none';
         }
       };
 
@@ -172,12 +187,6 @@
         ws.send(message)
       }
 
-      //人数カウント
-      function updatePlayerCount() {
-        const playerCountElem = document.getElementById('playerCount');
-        playerCountElem.textContent = `入室人数: ${players.size}人`;
-      }
-
       ws.onopen = () => {
         // 接続時にjoinメッセージを送る
         ws.send(JSON.stringify({ type: 'join', id: myId }));
@@ -199,13 +208,19 @@
           }
         }
 
+        if (msg.type === 'players') {
+          players = new Set(msg.players);
+          updatePlayerCountDisplay();
+          return;
+        }
+
         if (msg.type === 'chat') {
           const { id, text } = msg
           appendMessage(msg.id, msg.text, myId);
         }
         else if (msg.type === 'join') {
           players.add(msg.id); // 入室したユーザーをセットに追加
-          updatePlayerCount();
+          updatePlayerCountDisplay();
           const messageList = document.querySelector('.messages');
           const li = document.createElement('li');
           li.textContent = msg.id + 'が入室しました '
