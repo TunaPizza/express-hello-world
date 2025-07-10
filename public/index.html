@@ -197,10 +197,28 @@
         }
         else if (msg.type === 'join') {
           players.add(msg.id); // 入室したユーザーをセットに追加
+
           const messageList = document.querySelector('.messages');
           const li = document.createElement('li');
           li.textContent = msg.id + 'が入室しました '
           messageList.appendChild(li);
+          if (msg.isHost) {
+            document.getElementById('startButton').style.display = 'inline-block';
+            document.getElementById('roundSelect').style.display = 'inline-block';
+            document.getElementById('turnSelect').style.display = 'inline-block';
+          } else {
+            // ホストでない人は開始ボタンなどを非表示にしておく
+            document.getElementById('startButton').style.display = 'none';
+            document.getElementById('roundSelect').style.display = 'none';
+            document.getElementById('turnSelect').style.display = 'none';
+          }
+        }
+        if (msg.type === 'start') {
+          chatArea.style.display = 'none';
+          canvas.style.display = 'block';
+          document.getElementById('roundSelect').parentElement.style.display = 'none';
+          document.getElementById('turnSelect').parentElement.style.display = 'none';
+          document.getElementById('startButton').style.display = 'none';
         }
       }
 
