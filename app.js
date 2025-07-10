@@ -7,6 +7,7 @@ expressWs(app)
 const port = process.env.PORT || 3001
 let connects = []
 let users = new Map()
+let hostId = null; 
 
 app.use(express.static('public'))
 
