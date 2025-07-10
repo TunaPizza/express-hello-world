@@ -17,22 +17,24 @@ app.ws('/ws', (ws, req) => {
     const msg = JSON.parse(message)
     console.log('Received:', message)
 
+   
     if (msg.type === 'join') {
-      const isHost = connects.length === 1
-      users.set(ws, { id: msg.id, isHost })
+      if (!hostId) {
+        hostId = msg.id;
+      }
 
-      // 全員に join 通知を送信
+      // 各接続にhostIdを送る
+      const joinMsg = JSON.stringify({
+        type: 'join',
+        id: msg.id,
+        hostId: hostId,
+      });
+
       connects.forEach((socket) => {
         if (socket.readyState === 1) {
-          const isSelf = socket === ws
-          socket.send(JSON.stringify({
-            type: 'join',
-            id: msg.id,
-            isHost: isSelf ? isHost : false
-          }))
+          socket.send(joinMsg);
         }
-      })
-      return
+      });
     }
 
     if (msg.type === 'start') {

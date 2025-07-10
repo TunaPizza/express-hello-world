@@ -202,12 +202,14 @@
           const li = document.createElement('li');
           li.textContent = msg.id + 'が入室しました '
           messageList.appendChild(li);
-          if (msg.isHost) {
+          // ホストのIDを保存
+          hostId = msg.hostId;
+          // 自分がホストかどうか確認
+          if (myId === hostId) {
             document.getElementById('startButton').style.display = 'inline-block';
             document.getElementById('roundSelect').style.display = 'inline-block';
             document.getElementById('turnSelect').style.display = 'inline-block';
           } else {
-            // ホストでない人は開始ボタンなどを非表示にしておく
             document.getElementById('startButton').style.display = 'none';
             document.getElementById('roundSelect').style.display = 'none';
             document.getElementById('turnSelect').style.display = 'none';
