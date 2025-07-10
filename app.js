@@ -35,7 +35,7 @@ app.ws('/ws', (ws, req) => {
             // 他のクライアントに入室通知も送る
       const joinMsg = JSON.stringify({ type: 'join', id: msg.id })
       connects.forEach((socket) => {
-        if (socket !== ws && socket.readyState === 1) {
+        if (socket.readyState === 1) {
           socket.send(joinMsg)
         }
       })
