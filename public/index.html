@@ -111,13 +111,10 @@
           chatArea.style.display = 'none'; // チャットを非表示
           canvas.style.display = 'block';  // キャンバスを表示
 
-          document.getElementById('roundSelect').parentElement.style.display = 'none';
-          document.getElementById('turnSelect').parentElement.style.display = 'none';
-          document.getElementById('startButton').style.display = 'none';
         }
       };
 
-
+      
       const ctx = canvas.getContext('2d')
 
       let drawing = false
@@ -197,30 +194,10 @@
         }
         else if (msg.type === 'join') {
           players.add(msg.id); // 入室したユーザーをセットに追加
-
           const messageList = document.querySelector('.messages');
           const li = document.createElement('li');
           li.textContent = msg.id + 'が入室しました '
           messageList.appendChild(li);
-          // ホストのIDを保存
-          hostId = msg.hostId;
-          // 自分がホストかどうか確認
-          if (myId === hostId) {
-            document.getElementById('startButton').style.display = 'inline-block';
-            document.getElementById('roundSelect').style.display = 'inline-block';
-            document.getElementById('turnSelect').style.display = 'inline-block';
-          } else {
-            document.getElementById('startButton').style.display = 'none';
-            document.getElementById('roundSelect').style.display = 'none';
-            document.getElementById('turnSelect').style.display = 'none';
-          }
-        }
-        if (msg.type === 'start') {
-          chatArea.style.display = 'none';
-          canvas.style.display = 'block';
-          document.getElementById('roundSelect').parentElement.style.display = 'none';
-          document.getElementById('turnSelect').parentElement.style.display = 'none';
-          document.getElementById('startButton').style.display = 'none';
         }
       }
 
