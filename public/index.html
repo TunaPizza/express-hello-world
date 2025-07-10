@@ -80,6 +80,7 @@
       </select>
     </label>
     <button id="startButton" style="margin-left: 20px;">ゲーム開始</button>
+    <span id="playerCount" style="margin-left: 10px;">入室人数: 0人</span>
   </div>
 
   <canvas id="canvas" width="600" height="600" style="border: solid 1px black; display: none;"></canvas>
@@ -171,6 +172,12 @@
         ws.send(message)
       }
 
+      //人数カウント
+      function updatePlayerCount() {
+        const playerCountElem = document.getElementById('playerCount');
+        playerCountElem.textContent = `入室人数: ${players.size}人`;
+      }
+
       ws.onopen = () => {
         // 接続時にjoinメッセージを送る
         ws.send(JSON.stringify({ type: 'join', id: myId }));
@@ -198,6 +205,7 @@
         }
         else if (msg.type === 'join') {
           players.add(msg.id); // 入室したユーザーをセットに追加
+          updatePlayerCount();
           const messageList = document.querySelector('.messages');
           const li = document.createElement('li');
           li.textContent = msg.id + 'が入室しました '
