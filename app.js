@@ -16,7 +16,7 @@ app.ws('/ws', (ws, req) => {
   connects.push(ws)
 
   ws.on('message', (message) => {
-    //const msg = JSON.parse(message);
+    const msg = JSON.parse(message);
     console.log('Received:', message)
 
     if (msg.type === 'join') {
