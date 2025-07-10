@@ -14,14 +14,14 @@ app.ws('/ws', (ws, req) => {
   connects.push(ws)
 
   ws.on('message', (message) => {
-     const msg = JSON.parse(message)
+    const msg = JSON.parse(message)
     console.log('Received:', message)
-    
+
     if (msg.type === 'join') {
       const isHost = connects.length === 1
       users.set(ws, { id: msg.id, isHost })
 
- // 全員に join 通知を送信
+      // 全員に join 通知を送信
       connects.forEach((socket) => {
         if (socket.readyState === 1) {
           const isSelf = socket === ws
