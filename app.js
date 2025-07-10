@@ -26,13 +26,13 @@ app.ws('/ws', (ws, req) => {
         players: Array.from(players),
       })
 
-       connects.forEach((socket) => {
+      connects.forEach((socket) => {
         if (socket.readyState === 1) {
           socket.send(playersMsg)
         }
       })
 
-            // 他のクライアントに入室通知も送る
+      // 他のクライアントに入室通知も送る
       const joinMsg = JSON.stringify({ type: 'join', id: msg.id })
       connects.forEach((socket) => {
         if (socket.readyState === 1) {
