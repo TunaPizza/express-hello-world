@@ -147,11 +147,7 @@
           appendMessage(msg.id, msg.text, myId);
         }
         else if (msg.type === 'join') {
-          const messageList = document.querySelector('.messages');
-          const li = document.createElement('li');
-          li.className = 'join-message';
-          li.textContent = myId + `が入室しました`;
-          messageList.appendChild(li);
+          appendMessage(msg.id, 'が入室しました', myId);
         }
       }
 
@@ -160,8 +156,10 @@
         const li = document.createElement('li');
         if (id === myId) {
           li.className = 'my-message';
+          li.textContent = id  + text
         } else {
           li.className = 'other-message';
+          li.textContent = id + ': ' + text
         }
         messageList.appendChild(li);
       }
