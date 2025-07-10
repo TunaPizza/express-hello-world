@@ -158,22 +158,11 @@
       function appendMessage(id, text, myId) {
         const messageList = document.querySelector('.messages');
         const li = document.createElement('li');
-        const nameDiv = document.createElement('div');
-        const textDiv = document.createElement('div');
-        textDiv.className = 'text';
-        textDiv.textContent = text;
-        nameDiv.className = 'username';
         if (id === myId) {
           li.className = 'my-message';
-          nameDiv.textContent = id;
-
         } else {
           li.className = 'other-message';
-          nameDiv.textContent = id;
-
         }
-        li.appendChild(nameDiv);
-        li.appendChild(textDiv);
         messageList.appendChild(li);
       }
 
