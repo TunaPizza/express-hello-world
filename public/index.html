@@ -147,7 +147,11 @@
           appendMessage(msg.id, msg.text, myId);
         }
         else if (msg.type === 'join') {
-          appendMessage(msg.id, 'が入室しました', myId);
+          const messageList = document.querySelector('.messages');
+          const li = document.createElement('li');
+          li.className = 'join-message';
+          li.textContent = myId + `が入室しました`;
+          messageList.appendChild(li);
         }
       }
 
