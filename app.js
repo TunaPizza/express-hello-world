@@ -43,6 +43,16 @@ app.ws('/ws', (ws, req) => {
       return
     }
 
+    if (msg.type === 'start') {
+      // 全接続にゲーム開始通知を送る
+      connects.forEach((socket) => {
+        if (socket.readyState === 1) {
+          socket.send(JSON.stringify({ type: 'start' }));
+        }
+      });
+      return;
+    }
+
     connects.forEach((socket) => {
       if (socket.readyState === 1) {
         socket.send(message)

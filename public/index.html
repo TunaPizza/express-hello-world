@@ -80,7 +80,7 @@
       </select>
     </label>
     <button id="startButton" style="margin-left: 20px;">ゲーム開始</button>
-    
+
   </div>
 
   <canvas id="canvas" width="600" height="600" style="border: solid 1px black; display: none;"></canvas>
@@ -123,15 +123,7 @@
         );
 
         if (confirmed) {
-          chatArea.style.display = 'none'; // チャットを非表示
-          canvas.style.display = 'block';  // キャンバスを表示
-
-          //  以下を追加して選択UIとボタンを非表示にする
-          document.getElementById('roundSelect').parentElement.style.display = 'none';
-          document.getElementById('turnSelect').parentElement.style.display = 'none';
-          document.getElementById('startButton').style.display = 'none';
-          document.getElementById('playerCountSpan').style.display = 'none';
-        }
+          ws.send(JSON.stringify({ type: 'start' }));}
       };
 
 
@@ -212,6 +204,16 @@
           players = new Set(msg.players);
           updatePlayerCountDisplay();
           return;
+        }
+
+        if (msg.type === 'start') {
+          // 全員が受け取るとここが動くので画面切り替え
+          chatArea.style.display = 'none';
+          canvas.style.display = 'block';
+
+          document.getElementById('roundSelect').parentElement.style.display = 'none';
+          document.getElementById('turnSelect').parentElement.style.display = 'none';
+          document.getElementById('startButton').style.display = 'none';
         }
 
         if (msg.type === 'chat') {
