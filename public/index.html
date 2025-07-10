@@ -149,7 +149,7 @@
         else if (msg.type === 'join') {
           const messageList = document.querySelector('.messages');
           const li = document.createElement('li');
-          li.textContent = id + 'が入室しました ' + text
+          li.textContent = msg.id + 'が入室しました '
           messageList.appendChild(li);
         }
       }
