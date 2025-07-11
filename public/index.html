@@ -82,7 +82,7 @@
   </div>
 
   <div id="gameStatus" style="font-size: 20px; font-weight: bold; margin: 10px 0;">
-    <span id="firstChar" style="display: none;">最初の文字: </span>
+    <span id="firstChar" style="display: none;">最初の文字は </span>
     入室人数: <span id="playerCount">0</span>人
   </div>
 
@@ -216,6 +216,13 @@
             const firstCharEl = document.getElementById('firstChar');
             firstCharEl.textContent = '最初の文字: ' + msg.firstChar;
             firstCharEl.style.display = 'inline';
+          }
+
+          // ターン順を表示または保持
+          if (msg.turnOrder) {
+            console.log("ターン順:", msg.turnOrder);
+            // 必要であれば画面にも表示可能
+            alert("ターン順: " + msg.turnOrder.join(" → "));
           }
         }
 

@@ -55,10 +55,11 @@ app.ws('/ws', (ws, req) => {
       // ひらがな1文字をランダムに選ぶ
       const hiraganaList = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわ'.split('');
       const randomChar = hiraganaList[Math.floor(Math.random() * hiraganaList.length)];
+      const shuffledPlayers = Array.from(players).sort(() => Math.random() - 0.5);
       // 全接続にゲーム開始通知を送る
       connects.forEach((socket) => {
         if (socket.readyState === 1) {
-          socket.send(JSON.stringify({ type: 'start', firstChar: randomChar }));
+          socket.send(JSON.stringify({ type: 'start', firstChar: randomChar,turnOrder: shuffledPlayers,}));
         }
       });
       return;
