@@ -261,7 +261,7 @@
         updateTurnDisplay();
 
         // 必要があれば、ここでサーバーに通知する処理も追加可
-        // ws.send(JSON.stringify({ type: 'turnEnd', current: turnOrder[currentTurnIndex] }));
+        ws.send(JSON.stringify({ type: 'turnEnd', current: turnOrder[currentTurnIndex] }));
       };
 
       function appendMessage(id, text, myId) {
