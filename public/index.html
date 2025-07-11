@@ -80,6 +80,8 @@
     </label>
     <button id="startButton" style="margin-left: 20px;">ゲーム開始</button>
 
+    <div id="shiritoriChar" style="font-size: 24px; font-weight: bold; margin-top: 20px;"></div>
+
   </div>
 
   <canvas id="canvas" width="600" height="600" style="border: solid 1px black; display: none;"></canvas>
@@ -214,9 +216,10 @@
           document.getElementById('turnSelect').parentElement.style.display = 'none';
           document.getElementById('startButton').style.display = 'none';
 
-          // ランダム文字が送られてきたら表示
+          // ランダム文字が送られてきたら画面上に表示
           if (msg.firstChar) {
-            alert('しりとりスタート！ 最初の文字は「' + msg.firstChar + '」です。');
+            const charDisplay = document.getElementById('shiritoriChar');
+            charDisplay.textContent = '最初の文字:は「' + msg.firstChar + '」です';
           }
         }
 
