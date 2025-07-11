@@ -85,6 +85,9 @@
     <span id="firstChar" style="display: none;">最初の文字は </span>
     入室人数: <span id="playerCount">0</span>人
   </div>
+  <div id="turnDisplay" style="font-size: 18px; font-weight: bold; margin-bottom: 10px;"></div>
+  <canvas id="canvas" width="600" height="600" style="border: solid 1px black; display: none;"></canvas>
+  <button id="sendPictureButton" style="display: none;">Send Picture</button>
 
   <canvas id="canvas" width="600" height="600" style="border: solid 1px black; display: none;"></canvas>
 
@@ -95,6 +98,9 @@
       const ws = new WebSocket(host + '/ws')
 
       let players = new Set();
+
+      let turnOrder = [];     // 全体の順番
+      let currentTurnIndex = 0; // 現在のターンのインデックス
 
       const startButton = document.getElementById('startButton');
       const chatArea = document.querySelector('.chat');
@@ -116,6 +122,17 @@
 
       const canvas = document.getElementById('canvas')
       const ctx = canvas.getContext('2d')
+
+      //ターン管理する関数
+      function updateTurnDisplay() {
+        const display = turnOrder.map((name, index) => {
+          if (index === currentTurnIndex) {
+            return `<span style="color: red;">${name}</span>`;
+          }
+          return name;
+        }).join(" → ");
+        document.getElementById('turnDisplay').innerHTML = "ターン順: " + display;
+      }
 
       // 入室人数表示を更新する関数
       function updatePlayerCountDisplay() {
@@ -203,25 +220,25 @@
         }
 
         if (msg.type === 'start') {
-          // UIを切り替える
           chatArea.style.display = 'none';
           canvas.style.display = 'block';
+          document.getElementById('sendPictureButton').style.display = 'block';
+
           document.getElementById('roundSelect').parentElement.style.display = 'none';
           document.getElementById('turnSelect').parentElement.style.display = 'none';
           document.getElementById('startButton').style.display = 'none';
 
-          // ★ ここで、firstCharとturnOrderを同時に処理する！
           if (msg.firstChar && msg.turnOrder) {
-            // 表示にも使う
             const firstCharEl = document.getElementById('firstChar');
             firstCharEl.textContent = '最初の文字: ' + msg.firstChar;
             firstCharEl.style.display = 'inline';
 
-            // アラートで同時に表示
+            turnOrder = msg.turnOrder;
+            currentTurnIndex = 0;
+            updateTurnDisplay();
+
             alert(`最初の文字: ${msg.firstChar}\nターン順: ${msg.turnOrder.join(" → ")}`);
-
           }
-
         }
 
         if (msg.type === 'chat') {
@@ -237,6 +254,15 @@
           messageList.appendChild(li);
         }
       }
+      //ボタンおしたら
+      document.getElementById('sendPictureButton').onclick = () => {
+        // 次のターンに進める
+        currentTurnIndex = (currentTurnIndex + 1) % turnOrder.length;
+        updateTurnDisplay();
+
+        // 必要があれば、ここでサーバーに通知する処理も追加可
+        // ws.send(JSON.stringify({ type: 'turnEnd', current: turnOrder[currentTurnIndex] }));
+      };
 
       function appendMessage(id, text, myId) {
         const messageList = document.querySelector('.messages');
