@@ -6,6 +6,7 @@ expressWs(app)
 
 const port = process.env.PORT || 3001
 let connects = []
+let chatHistory = [];
 let players = new Set()
 
 app.use(express.static('public'))
@@ -19,6 +20,13 @@ app.ws('/ws', (ws, req) => {
 
     if (msg.type === 'join') {
       players.add(msg.id)
+
+      // 新しく入室した人に、履歴をまとめて送る
+      ws.send(JSON.stringify({
+        type: 'init',
+        players: Array.from(players),
+        chatHistory: chatHistory
+      }));
 
       // 全クライアントに現在の参加者リストを送信
       const playersMsg = JSON.stringify({

@@ -63,21 +63,11 @@
   <div style="margin-top: 20px;">
     <label>
       ラウンド数:
-      <select id="roundSelect">
-        <option value="1">1</option>
-        <option value="3">3</option>
-        <option value="5">5</option>
-        <option value="10">10</option>
-      </select>
+      <input type="number" id="roundSelect" min="1" max="10" step="1" value="3">
     </label>
     <label style="margin-left: 20px;">
       ターン数:
-      <select id="turnSelect">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="5">5</option>
-      </select>
+      <input type="number" id="turnSelect" min="1" max="5" step="1" value="2">
     </label>
     <button id="startButton" style="margin-left: 20px;">ゲーム開始</button>
 
@@ -110,7 +100,6 @@
         countSpan.textContent = `入室人数: ${players.size} 人`;
       }
 
-      const canvas = document.getElementById('canvas')
 
       // ゲーム開始ボタンイベント
       startButton.onclick = () => {
@@ -123,10 +112,11 @@
         );
 
         if (confirmed) {
-          ws.send(JSON.stringify({ type: 'start' }));}
+          ws.send(JSON.stringify({ type: 'start' }));
+        }
       };
 
-
+      const canvas = document.getElementById('canvas')
       const ctx = canvas.getContext('2d')
 
       let drawing = false
