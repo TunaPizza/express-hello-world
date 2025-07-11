@@ -32,6 +32,15 @@
       text-align: left;
     }
 
+    .number-input {
+      width: 80px;
+      /* 横幅を大きくする */
+      padding: 5px;
+      /* 内側の余白 */
+      font-size: 16px;
+      /* 文字を大きくする */
+    }
+
     .form {
       display: flex;
     }
@@ -63,11 +72,11 @@
   <div style="margin-top: 20px;">
     <label>
       ラウンド数:
-      <input type="number" id="roundSelect" min="1" max="10" step="1" value="3">
+      <input type="number" id="roundSelect" class="number-input" min="1" max="10" step="1" value="3">
     </label>
     <label style="margin-left: 20px;">
       ターン数:
-      <input type="number" id="turnSelect" min="1" max="5" step="1" value="2">
+      <input type="number" id="turnSelect" class="number-input" min="1" max="5" step="1" value="2">
     </label>
     <button id="startButton" style="margin-left: 20px;">ゲーム開始</button>
 
