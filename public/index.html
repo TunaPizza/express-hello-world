@@ -82,7 +82,7 @@
   </div>
 
   <div id="gameStatus" style="font-size: 20px; font-weight: bold; margin: 10px 0;">
-    最初の文字: <span id="firstChar">まだ未決定</span>　
+    <span id="firstChar" style="display: none;">最初の文字: </span>
     入室人数: <span id="playerCount">0</span>人
   </div>
 
@@ -213,7 +213,9 @@
 
           // 最初の文字をここで更新
           if (msg.firstChar) {
-            document.getElementById('firstChar').textContent = msg.firstChar;
+            const firstCharEl = document.getElementById('firstChar');
+            firstCharEl.textContent = '最初の文字: ' + msg.firstChar;
+            firstCharEl.style.display = 'inline';
           }
         }
 
