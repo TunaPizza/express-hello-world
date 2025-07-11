@@ -79,9 +79,6 @@
       <input type="number" id="turnSelect" class="number-input" min="1" max="5" step="1" value="2">
     </label>
     <button id="startButton" style="margin-left: 20px;">ゲーム開始</button>
-
-    <div id="shiritoriChar" style="font-size: 24px; font-weight: bold; margin-top: 20px;"></div>
-
   </div>
 
   <div id="gameStatus" style="font-size: 20px; font-weight: bold; margin: 10px 0;">
@@ -214,10 +211,9 @@
           document.getElementById('turnSelect').parentElement.style.display = 'none';
           document.getElementById('startButton').style.display = 'none';
 
-          // ランダム文字が送られてきたら画面上に表示
+          // 最初の文字をここで更新
           if (msg.firstChar) {
-            const charDisplay = document.getElementById('shiritoriChar');
-            charDisplay.textContent = '最初の文字は「' + msg.firstChar + '」です';
+            document.getElementById('firstChar').textContent = msg.firstChar;
           }
         }
 
