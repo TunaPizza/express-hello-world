@@ -91,6 +91,18 @@
 
   <canvas id="canvas" width="600" height="600" style="border: solid 1px black; display: none;"></canvas>
 
+  <div id="waitingScreen" style="
+  display: none;
+  width: 600px;
+  height: 600px;
+  background-color: white;
+  border: 1px solid black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: bold;
+">待機中...</div>
   <script>
     function main() {
       const myId = prompt("ユーザー名を入力してください")?.trim() || self.crypto.randomUUID().substr(0, 8);
@@ -123,6 +135,21 @@
       const canvas = document.getElementById('canvas')
       const ctx = canvas.getContext('2d')
 
+      //キャンバス制御の関数
+      function showCanvasIfMyTurn() {
+        const currentPlayer = turnOrder[currentTurnIndex];
+
+        if (currentPlayer === myId) {
+          canvas.style.display = 'block';
+          document.getElementById('waitingScreen').style.display = 'none';
+          document.getElementById('sendPictureButton').style.display = 'block';
+        } else {
+          canvas.style.display = 'none';
+          document.getElementById('waitingScreen').style.display = 'flex';
+          document.getElementById('sendPictureButton').style.display = 'none';
+        }
+      }
+
       //ターン管理する関数
       function updateTurnDisplay() {
         const display = turnOrder.map((name, index) => {
@@ -132,6 +159,8 @@
           return name;
         }).join(" → ");
         document.getElementById('turnDisplay').innerHTML = "ターン順: " + display;
+
+        showCanvasIfMyTurn();
       }
 
       // 入室人数表示を更新する関数
@@ -221,9 +250,6 @@
 
         if (msg.type === 'start') {
           chatArea.style.display = 'none';
-          canvas.style.display = 'block';
-          document.getElementById('sendPictureButton').style.display = 'block';
-
           document.getElementById('roundSelect').parentElement.style.display = 'none';
           document.getElementById('turnSelect').parentElement.style.display = 'none';
           document.getElementById('startButton').style.display = 'none';
@@ -235,11 +261,12 @@
 
             turnOrder = msg.turnOrder;
             currentTurnIndex = 0;
-            updateTurnDisplay();
+            updateTurnDisplay(); 
 
             alert(`最初の文字: ${msg.firstChar}\nターン順: ${msg.turnOrder.join(" → ")}`);
           }
         }
+
 
         if (msg.type === 'chat') {
           const { id, text } = msg
