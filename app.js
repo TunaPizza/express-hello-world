@@ -53,16 +53,22 @@ app.ws('/ws', (ws, req) => {
 
     if (msg.type === 'start') {
       // ひらがな1文字をランダムに選ぶ
-      const hiraganaList = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわ'.split('');
-      const randomChar = hiraganaList[Math.floor(Math.random() * hiraganaList.length)];
+      const firstChar = getRandomHiragana();
       const shuffledPlayers = Array.from(players).sort(() => Math.random() - 0.5);
       // 全接続にゲーム開始通知を送る
       connects.forEach((socket) => {
         if (socket.readyState === 1) {
-          socket.send(JSON.stringify({ type: 'start', firstChar: randomChar,turnOrder: shuffledPlayers,}));
+          socket.send(JSON.stringify({
+            type: 'start', firstChar: firstChar, turnOrder: shuffledPlayers,
+          }));
         }
       });
       return;
+    }
+
+    function getRandomHiragana() {
+      const hira = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん';
+      return hira[Math.floor(Math.random() * hira.length)];
     }
 
     connects.forEach((socket) => {
