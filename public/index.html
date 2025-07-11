@@ -212,64 +212,62 @@
           document.getElementById('startButton').style.display = 'none';
 
           // 最初の文字をここで更新
-          if (msg.firstChar) {
+          if (msg.firstChar && msg.turnOrder) {
+            // 表示用のHTML要素更新
             const firstCharEl = document.getElementById('firstChar');
             firstCharEl.textContent = '最初の文字: ' + msg.firstChar;
             firstCharEl.style.display = 'inline';
+
+            // アラートでまとめて表示
+            alert(
+              `最初の文字: ${msg.firstChar}\nターン順: ${msg.turnOrder.join(" → ")}`
+            );
           }
 
-          // ターン順を表示または保持
-          if (msg.turnOrder) {
-            console.log("ターン順:", msg.turnOrder);
-            // 必要であれば画面にも表示可能
-            alert("ターン順: " + msg.turnOrder.join(" → "));
+          if (msg.type === 'chat') {
+            const { id, text } = msg
+            appendMessage(msg.id, msg.text, myId);
+          }
+          else if (msg.type === 'join') {
+            players.add(msg.id); // 入室したユーザーをセットに追加
+            updatePlayerCountDisplay();
+            const messageList = document.querySelector('.messages');
+            const li = document.createElement('li');
+            li.textContent = msg.id + 'が入室しました '
+            messageList.appendChild(li);
           }
         }
 
-        if (msg.type === 'chat') {
-          const { id, text } = msg
-          appendMessage(msg.id, msg.text, myId);
-        }
-        else if (msg.type === 'join') {
-          players.add(msg.id); // 入室したユーザーをセットに追加
-          updatePlayerCountDisplay();
+        function appendMessage(id, text, myId) {
           const messageList = document.querySelector('.messages');
           const li = document.createElement('li');
-          li.textContent = msg.id + 'が入室しました '
+          if (id === myId) {
+            li.className = 'my-message';
+            li.textContent = id + ': ' + text
+          } else {
+            li.className = 'other-message';
+            li.textContent = id + ': ' + text
+          }
           messageList.appendChild(li);
         }
-      }
 
-      function appendMessage(id, text, myId) {
-        const messageList = document.querySelector('.messages');
-        const li = document.createElement('li');
-        if (id === myId) {
-          li.className = 'my-message';
-          li.textContent = id + ': ' + text
-        } else {
-          li.className = 'other-message';
-          li.textContent = id + ': ' + text
+        const form = document.querySelector('.form')
+
+        form.onsubmit = function (e) {
+          e.preventDefault()
+          const input = document.querySelector('.input')
+          const text = input.value
+          ws.send(JSON.stringify({ id: myId, text, type: 'chat' }))
+          input.value = ''
+          input.focus()
         }
-        messageList.appendChild(li);
+
+        ws.onerror = function (error) {
+          console.error('WebSocket Error: ', error)
+        }
       }
 
-      const form = document.querySelector('.form')
-
-      form.onsubmit = function (e) {
-        e.preventDefault()
-        const input = document.querySelector('.input')
-        const text = input.value
-        ws.send(JSON.stringify({ id: myId, text, type: 'chat' }))
-        input.value = ''
-        input.focus()
-      }
-
-      ws.onerror = function (error) {
-        console.error('WebSocket Error: ', error)
-      }
-    }
-
-    main()
+      main()
   </script>
 </body>
 
