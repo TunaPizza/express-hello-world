@@ -203,71 +203,71 @@
         }
 
         if (msg.type === 'start') {
-          // 全員が受け取るとここが動くので画面切り替え
+          // UIを切り替える
           chatArea.style.display = 'none';
           canvas.style.display = 'block';
-
           document.getElementById('roundSelect').parentElement.style.display = 'none';
           document.getElementById('turnSelect').parentElement.style.display = 'none';
           document.getElementById('startButton').style.display = 'none';
 
-          // 最初の文字をここで更新
+          // ★ ここで、firstCharとturnOrderを同時に処理する！
           if (msg.firstChar && msg.turnOrder) {
-            // 表示用のHTML要素更新
+            // 表示にも使う
             const firstCharEl = document.getElementById('firstChar');
             firstCharEl.textContent = '最初の文字: ' + msg.firstChar;
             firstCharEl.style.display = 'inline';
 
-            // アラートでまとめて表示
-            alert(
-              `最初の文字: ${msg.firstChar}\nターン順: ${msg.turnOrder.join(" → ")}`
-            );
+            // アラートで同時に表示
+            alert(`最初の文字: ${msg.firstChar}\nターン順: ${msg.turnOrder.join(" → ")}`);
+
           }
 
-          if (msg.type === 'chat') {
-            const { id, text } = msg
-            appendMessage(msg.id, msg.text, myId);
-          }
-          else if (msg.type === 'join') {
-            players.add(msg.id); // 入室したユーザーをセットに追加
-            updatePlayerCountDisplay();
-            const messageList = document.querySelector('.messages');
-            const li = document.createElement('li');
-            li.textContent = msg.id + 'が入室しました '
-            messageList.appendChild(li);
-          }
         }
 
-        function appendMessage(id, text, myId) {
+        if (msg.type === 'chat') {
+          const { id, text } = msg
+          appendMessage(msg.id, msg.text, myId);
+        }
+        else if (msg.type === 'join') {
+          players.add(msg.id); // 入室したユーザーをセットに追加
+          updatePlayerCountDisplay();
           const messageList = document.querySelector('.messages');
           const li = document.createElement('li');
-          if (id === myId) {
-            li.className = 'my-message';
-            li.textContent = id + ': ' + text
-          } else {
-            li.className = 'other-message';
-            li.textContent = id + ': ' + text
-          }
+          li.textContent = msg.id + 'が入室しました '
           messageList.appendChild(li);
-        }
-
-        const form = document.querySelector('.form')
-
-        form.onsubmit = function (e) {
-          e.preventDefault()
-          const input = document.querySelector('.input')
-          const text = input.value
-          ws.send(JSON.stringify({ id: myId, text, type: 'chat' }))
-          input.value = ''
-          input.focus()
-        }
-
-        ws.onerror = function (error) {
-          console.error('WebSocket Error: ', error)
         }
       }
 
-      main()
+      function appendMessage(id, text, myId) {
+        const messageList = document.querySelector('.messages');
+        const li = document.createElement('li');
+        if (id === myId) {
+          li.className = 'my-message';
+          li.textContent = id + ': ' + text
+        } else {
+          li.className = 'other-message';
+          li.textContent = id + ': ' + text
+        }
+        messageList.appendChild(li);
+      }
+
+      const form = document.querySelector('.form')
+
+      form.onsubmit = function (e) {
+        e.preventDefault()
+        const input = document.querySelector('.input')
+        const text = input.value
+        ws.send(JSON.stringify({ id: myId, text, type: 'chat' }))
+        input.value = ''
+        input.focus()
+      }
+
+      ws.onerror = function (error) {
+        console.error('WebSocket Error: ', error)
+      }
+    }
+
+    main()
   </script>
 </body>
 
