@@ -213,6 +213,11 @@
           document.getElementById('roundSelect').parentElement.style.display = 'none';
           document.getElementById('turnSelect').parentElement.style.display = 'none';
           document.getElementById('startButton').style.display = 'none';
+
+          // ランダム文字が送られてきたら表示
+          if (msg.firstChar) {
+            alert('しりとりスタート！ 最初の文字は「' + msg.firstChar + '」です。');
+          }
         }
 
         if (msg.type === 'chat') {
