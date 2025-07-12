@@ -157,14 +157,14 @@
         const currentPlayer = turnOrder[currentTurnIndex];
         const isMyTurn = (currentPlayer === myId);
 
-        // ゲーム初期設定UIの非表示
-        document.getElementById('roundSelect').parentElement.style.display = 'none';
-        document.getElementById('turnSelect').parentElement.style.display = 'none';
-        startButton.style.display = 'none';
-
         // フェーズとプレイヤーに応じたUIの切り替え
         if (gamePhase === 'drawing') {
           // 描画フェーズ
+          // ゲーム初期設定UIを非表示にする
+          document.getElementById('roundSelect').parentElement.style.display = 'none';
+          document.getElementById('turnSelect').parentElement.style.display = 'none';
+          startButton.style.display = 'none';
+
           if (isMyTurn) {
             // 自分の番の描画者
             canvas.style.display = 'block';
@@ -183,6 +183,11 @@
           waitingScreen.textContent = `${currentPlayer}が描画中...`;
         } else if (gamePhase === 'answering') {
           // 回答フェーズ
+          // ゲーム初期設定UIを非表示にする
+          document.getElementById('roundSelect').parentElement.style.display = 'none';
+          document.getElementById('turnSelect').parentElement.style.display = 'none';
+          startButton.style.display = 'none';
+
           if (isMyTurn) {
             // 自分の番の回答者
             canvas.style.display = 'block'; // 描いた絵は見えるようにしておく
@@ -200,14 +205,21 @@
           }
           waitingScreen.textContent = `${currentPlayer}が回答中...`;
         } else { // 'idle' またはゲーム終了時
+          // 'idle' の場合はゲーム開始前のUIを表示する
           canvas.style.display = 'none';
           waitingScreen.style.display = 'flex'; // 待機画面を表示
           drawingControls.style.display = 'none';
           answeringControls.style.display = 'none';
           chatForm.style.display = 'flex'; // チャットは常に表示
           waitingScreen.textContent = '待機中...';
+
+          // *** ここでゲーム開始前の設定UIを表示する ***
+          document.getElementById('roundSelect').parentElement.style.display = 'block';
+          document.getElementById('turnSelect').parentElement.style.display = 'block';
+          startButton.style.display = 'block';
+          // ********************************************
         }
-      }
+      } F
 
       // --- タイマー関連関数 ---
       function startTimer(duration, onTimeEnd, onTick) {
@@ -244,7 +256,7 @@
         updateUIForPhase();
         answerInput.value = ''; // 回答入力欄をリセット
         if (turnOrder[currentTurnIndex] === myId) {
-            answerInput.focus(); // 自分の番なら回答欄にフォーカス
+          answerInput.focus(); // 自分の番なら回答欄にフォーカス
         }
         startTimer(answeringTimeLimit, () => {
           console.log("回答時間終了 (自動)");
@@ -253,17 +265,17 @@
       }
 
       function nextPhase() {
-          if (gamePhase === 'drawing') {
-              // 描画フェーズから回答フェーズへ
-              console.log('描画フェーズ終了 -> 回答フェーズ開始');
-              startAnsweringPhase();
-              // 描画が終了したことをサーバーに通知（必要に応じて）
-              // ws.send(JSON.stringify({ type: 'drawing_ended', drawer: myId }));
-          } else {
-              // 回答フェーズから次のターンへ (nextTurn() がこれを処理)
-              console.log('回答フェーズ終了 -> 次のターンへ');
-              nextTurn();
-          }
+        if (gamePhase === 'drawing') {
+          // 描画フェーズから回答フェーズへ
+          console.log('描画フェーズ終了 -> 回答フェーズ開始');
+          startAnsweringPhase();
+          // 描画が終了したことをサーバーに通知（必要に応じて）
+          // ws.send(JSON.stringify({ type: 'drawing_ended', drawer: myId }));
+        } else {
+          // 回答フェーズから次のターンへ (nextTurn() がこれを処理)
+          console.log('回答フェーズ終了 -> 次のターンへ');
+          nextTurn();
+        }
       }
 
       function nextTurn() {
@@ -363,8 +375,8 @@
         const playerCount = players.size;
 
         if (playerCount === 0) { // プレイヤーがいない場合は開始しない
-            alert('ゲームを開始するには、少なくとも1人以上のプレイヤーが必要です。');
-            return;
+          alert('ゲームを開始するには、少なくとも1人以上のプレイヤーが必要です。');
+          return;
         }
 
         const confirmed = confirm(
@@ -386,7 +398,7 @@
           clearInterval(timerInterval); // タイマーを停止
           nextPhase(); // 回答フェーズへ移行
         } else {
-            alert('今はあなたの描画ターンではありません。');
+          alert('今はあなたの描画ターンではありません。');
         }
       };
 
@@ -395,7 +407,7 @@
         if (gamePhase === 'drawing' && turnOrder[currentTurnIndex] === myId) {
           clearCanvas();
         } else {
-            alert('今はあなたの描画ターンではありません。');
+          alert('今はあなたの描画ターンではありません。');
         }
       };
 
@@ -411,7 +423,7 @@
             alert('回答を入力してください。');
           }
         } else {
-            alert('今はあなたの回答ターンではありません。');
+          alert('今はあなたの回答ターンではありません。');
         }
       };
 
@@ -420,9 +432,9 @@
         e.preventDefault();
         const text = chatInput.value.trim();
         if (text) { // 空文字でない場合のみ送信
-            ws.send(JSON.stringify({ id: myId, text, type: 'chat' }));
-            chatInput.value = '';
-            chatInput.focus();
+          ws.send(JSON.stringify({ id: myId, text, type: 'chat' }));
+          chatInput.value = '';
+          chatInput.focus();
         }
       };
 
@@ -440,15 +452,15 @@
             const { x, y, control } = msg;
             // 描画フェーズ中のみ描画を反映
             if (gamePhase === 'drawing') {
-                if (control === 'mousedown') {
-                  mousedown();
-                } else if (control === 'mouseup') {
-                  mouseup();
-                } else if (control === 'mousemove') {
-                  draw(x, y, true); // 他のクライアントからの描画は直接描画関数を呼ぶ
-                } else if (control === 'mouseout') {
-                  mouseout();
-                }
+              if (control === 'mousedown') {
+                mousedown();
+              } else if (control === 'mouseup') {
+                mouseup();
+              } else if (control === 'mousemove') {
+                draw(x, y, true); // 他のクライアントからの描画は直接描画関数を呼ぶ
+              } else if (control === 'mouseout') {
+                mouseout();
+              }
             }
             break;
           case 'clear_canvas':
