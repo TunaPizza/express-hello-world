@@ -132,21 +132,21 @@
   <div class="chat">
     <ul class="messages"></ul>
     <form class="form" id="chatForm">
-      <input class=" input id="chatInput" autocomplete="off" />
-    <button class="submit" id="chatSubmitButton>Send</button>
+      <input class="input" id="chatInput" autocomplete="off" />
+      <button class="submit" id="chatSubmitButton">Send</button>
     </form>
   </div>
 
   <div style=" margin-top: 20px;">
-      <label>
-        ラウンド数:
-        <input type="number" id="roundSelect" class="number-input" min="1" max="10" step="1" value="3">
-      </label>
-      <label style="margin-left: 20px;">
-        ターン数:
-        <input type="number" id="turnSelect" class="number-input" min="1" max="5" step="1" value="2">
-      </label>
-      <button id="startButton" style="margin-left: 20px;">ゲーム開始</button>
+    <label>
+      ラウンド数:
+      <input type="number" id="roundSelect" class="number-input" min="1" max="10" step="1" value="3">
+    </label>
+    <label style="margin-left: 20px;">
+      ターン数:
+      <input type="number" id="turnSelect" class="number-input" min="1" max="5" step="1" value="2">
+    </label>
+    <button id="startButton" style="margin-left: 20px;">ゲーム開始</button>
   </div>
 
   <div id="gameStatus" style="font-size: 20px; font-weight: bold; margin: 10px 0;">
@@ -433,6 +433,10 @@
 
           gameStarted = true;
           setDrawingTurnUI();
+          const firstCharEl = document.getElementById('firstChar');
+          firstCharEl.textContent = '最初の文字: ' + msg.firstChar;
+          firstCharEl.style.display = 'inline';
+          alert(`最初の文字: ${msg.firstChar}\nターン順: ${msg.turnOrder.join(' → ')}`);
 
 
           // 最初の文字をここで更新
@@ -458,6 +462,7 @@
 
         if (msg.type === 'answer') {
           const { id, text } = msg;
+
           answers.push({ id, text });
           console.log("保存された回答:", answers); // デバッグ用
           ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -505,12 +510,10 @@
           return;
         }
 
-        if (isAnsweringTurn) {
+        if (gameStarted && isAnsweringTurn) {
           if (text !== '') {
             ws.send(JSON.stringify({ id: myId, text: text, type: 'answer' }));
-            answers.push({ id: myId, text: text });
-            input.value = ''
-            input.focus()
+            input.value = '';
           }
           //回答送信後次の人の絵のターンへ
           setDrawingTurnUI();
