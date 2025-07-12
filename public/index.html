@@ -34,11 +34,8 @@
 
     .number-input {
       width: 80px;
-      /* 横幅を大きくする */
       padding: 5px;
-      /* 内側の余白 */
       font-size: 16px;
-      /* 文字を大きくする */
     }
 
     .form {
@@ -51,11 +48,82 @@
       border: 1px solid #ccc;
     }
 
+    .box {
+      display: flex;
+      align-items: center;
+      margin-top: 20px;
+    }
+
     .submit {
       padding: 10px;
       border: 1px solid #ccc;
       background: #eee;
       cursor: pointer;
+    }
+
+    input[type="color"] {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      display: inline-block;
+      margin-right: 18px;
+      border: 1px solid rgb(0, 0, 0);
+      border-radius: 50%;
+    }
+
+    input[type="color"]::-webkit-color-swatch,
+    input[type="color"]::-webkit-color-swatch-wrapper {
+      border: none;
+      padding: 0;
+      border-radius: 50%;
+    }
+
+    input[type="text"] {
+      border: 1px solid rgb(0, 0, 0);
+      padding: 5px;
+    }
+
+    #eraserToggle {
+      margin-left: 10px;
+    }
+
+    .drawing-tools {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+      gap: 15px;
+      /* 要素間のスペース */
+      flex-wrap: wrap;
+      /* 要素が収まらない場合に折り返す */
+      justify-content: center;
+      /* ツールを中央寄せ */
+    }
+
+    .canvases-container {
+      display: flex;
+      gap: 20px;
+      /* キャンバス間のスペース */
+      margin: 20px auto;
+      /* 上下の余白と左右中央寄せ */
+      justify-content: center;
+      /* キャンバスを中央寄せ */
+      align-items: flex-start;
+      /* 上端を揃える */
+    }
+
+    .canvases-container canvas {
+      display: block;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    #receivedCanvas {
+      border: solid 1px red;
+      /* 受信用キャンバスの枠線 */
+    }
+
+    #canvas {
+      border: solid 1px black;
+      /* 描画用キャンバスの枠線 */
     }
   </style>
 </head>
@@ -63,22 +131,22 @@
 <body>
   <div class="chat">
     <ul class="messages"></ul>
-    <form class="form">
-      <input class="input" autocomplete="off" />
-      <button class="submit">Send</button>
+    <form class="form" id="chatForm>
+      <input class=" input id="chatInput" autocomplete="off" />
+    <button class="submit" id="chatSubmitButton>Send</button>
     </form>
   </div>
 
-  <div style="margin-top: 20px;">
-    <label>
-      ラウンド数:
-      <input type="number" id="roundSelect" class="number-input" min="1" max="10" step="1" value="3">
-    </label>
-    <label style="margin-left: 20px;">
-      ターン数:
-      <input type="number" id="turnSelect" class="number-input" min="1" max="5" step="1" value="2">
-    </label>
-    <button id="startButton" style="margin-left: 20px;">ゲーム開始</button>
+  <div style=" margin-top: 20px;">
+      <label>
+        ラウンド数:
+        <input type="number" id="roundSelect" class="number-input" min="1" max="10" step="1" value="3">
+      </label>
+      <label style="margin-left: 20px;">
+        ターン数:
+        <input type="number" id="turnSelect" class="number-input" min="1" max="5" step="1" value="2">
+      </label>
+      <button id="startButton" style="margin-left: 20px;">ゲーム開始</button>
   </div>
 
   <div id="gameStatus" style="font-size: 20px; font-weight: bold; margin: 10px 0;">
@@ -86,7 +154,30 @@
     入室人数: <span id="playerCount">0</span>人
   </div>
 
-  <canvas id="canvas" width="600" height="600" style="border: solid 1px black; display: none;"></canvas>
+  <!-- ふたつのキャンバス -->
+  <div class="canvases-container">
+    <canvas id="receivedCanvas" width="600" height="600"></canvas>
+    <canvas id="canvas" width="600" height="600"></canvas>
+  </div>
+
+  <div class="drawing-tools">
+    <!-- 線の太さ -->
+    <label>
+      線の太さ:
+      <input type="range" id="lineWidthSlider" min="1" max="20" value="5">
+    </label>
+    <!-- カラーピッカー -->
+    <input type="color" id="colorPicker" value="#000000">
+    <!-- 消しゴム -->
+    <button id="eraserToggle">消しゴム OFF</button>
+
+    <!-- sendPictureボタン追加 -->
+    <button id="sendPictureButton">Send Picture</button>
+
+  </div>
+
+
+  <!-- <canvas id="canvas" width="600" height="600" style="border: solid 1px black; display: none;"></canvas> -->
 
   <script>
     function main() {
@@ -96,8 +187,36 @@
 
       let players = new Set();
 
+      //ゲーム開始状態を管理
+      let gameStarted = false;
+      //回答を保存する配列
+      let answers = [];
+      //描かれた画像を保存する配列
+      let drawnImages = [];
+      //一時的に描かれた画像を保持する
+      let currentDrawingData = null;
+
+
       const startButton = document.getElementById('startButton');
       const chatArea = document.querySelector('.chat');
+
+      //チャット入力欄と、sendボタン、画像sendボタン
+      const chatInput = document.getElementById('chatInput'); // chatInputのIDを追加
+      const chatSubmitButton = document.getElementById('chatSubmitButton'); // chatSubmitButtonのIDを追加
+      const sendPictureButton = document.getElementById('sendPictureButton'); // 新しいボタンを取得
+      const drawingToolsContainer = document.querySelector('.drawing-tools');
+
+      //描画モードか、回答入力モードか
+      let isDrawingTurn = false; //絵を描くターンかどうか
+      let isAnsweringTurn = false; //回答入力ターンかどうか
+
+      // 入室人数表示を更新する関数
+      function updatePlayerCountDisplay() {
+        const playerCountElement = document.getElementById('playerCount');
+        if (playerCountElement) {
+          playerCountElement.textContent = players.size;
+        }
+      }
 
       // ゲーム開始ボタンイベント
       startButton.onclick = () => {
@@ -111,21 +230,47 @@
 
         if (confirmed) {
           ws.send(JSON.stringify({ type: 'start' }));
+          gameStarted = true;
+          setDrawingTurnUI();
+
         }
       };
 
+
+      const receivedCanvas = document.getElementById('receivedCanvas');
+      const receivedCtx = receivedCanvas.getContext('2d');
       const canvas = document.getElementById('canvas')
       const ctx = canvas.getContext('2d')
 
-      // 入室人数表示を更新する関数
-      function updatePlayerCountDisplay() {
-        const playerCountElement = document.getElementById('playerCount');
-        if (playerCountElement) {
-          playerCountElement.textContent = players.size;
+      const colorPicker = document.getElementById('colorPicker');
+      const lineWidthSlider = document.getElementById('lineWidthSlider');
+      const eraserToggle = document.getElementById('eraserToggle');
+
+      ctx.strokeStyle = colorPicker.value;
+      ctx.lineWidth = lineWidthSlider.value;
+
+      colorPicker.addEventListener('input', () => {
+        if (!eraserMode) {
+          ctx.strokeStyle = colorPicker.value;
         }
-      }
+      });
+      lineWidthSlider.addEventListener('input', () => {
+        ctx.lineWidth = lineWidthSlider.value;
+      });
+
 
       let drawing = false
+      let eraserMode = false;
+
+      eraserToggle.addEventListener('click', () => {
+        eraserMode = !eraserMode;
+        eraserToggle.textContent = eraserMode ? "消しゴム ON" : "消しゴム OFF";
+        if (eraserMode) {
+          ctx.strokeStyle = "#ffffff";//←実際に消していない白で上塗りしている
+        } else {
+          ctx.strokeStyle = colorPicker.value;
+        }
+      });
 
       canvas.addEventListener('mousedown', (e) => {
         sendDrawingEvent(e.offsetX, e.offsetY, 'mousedown')
@@ -170,10 +315,73 @@
         }
       }
 
+      function enableDrawingTools() {
+        canvas.style.pointerEvents = 'auto'; // 描画可能に
+        colorPicker.disabled = false;
+        lineWidthSlider.disabled = false;
+        eraserToggle.disabled = false; // 消しゴムも有効に
+        drawingToolsContainer.style.display = 'flex'; // 描画ツール全体を表示
+      }
+
+      function disableDrawingTools() {
+        canvas.style.pointerEvents = 'none'; // 描画できないように
+        colorPicker.disabled = true;
+        lineWidthSlider.disabled = true;
+        eraserToggle.disabled = true; // 消しゴムも無効に
+        drawing = false; // 描画中フラグをオフにする
+        drawingToolsContainer.style.display = 'none'; // 描画ツール全体を非表示
+      }
+
       function sendDrawingEvent(x, y, control) {
-        const message = JSON.stringify({ x, y, control, type: 'paint' })
+        const message = JSON.stringify({
+          x, y, control, color: eraserMode ? "#ffffff" : colorPicker.value,
+          width: lineWidthSlider.value,
+          eraser: eraserMode,
+          type: 'paint'
+        })
         ws.send(message)
       }
+
+      function setDrawingTurnUI() {
+        isDrawingTurn = true;
+        isAnsweringTurn = false;
+        enableDrawingTools(); // 描画ツールを有効化
+
+        chatForm.style.display = 'none';
+        sendPictureButton.style.display = 'block'
+        chatInput.placeholder = "絵を描いて「Send Picture」を押してください"
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        receivedCtx.clearRect(0, 0, receivedCanvas.width, receivedCanvas.height);
+
+      }
+
+      function setAnsweringTurnUI() {
+        isDrawingTurn = false;
+        isAnsweringTurn = true;
+        disableDrawingTools(); // 描画ツールを無効化
+
+        chatForm.style.display = 'flex';
+        sendPictureButton.style.display = 'none';
+        chatInput.placeholder = "何を描いたか”ひらがなで”入力してください";
+        chatInput.value = '';
+        chatInput.focus();
+      }
+
+      function setChatModeUI() {
+        isDrawingTurn = false;
+        isAnsweringTurn = false;
+
+        chatForm.style.display = 'flex';
+        sendPictureButton.style.display = 'none';
+        chatInput.placeholder = "チャットメッセージを入力";
+        chatInput.value = '';
+        chatInput.focus();
+
+        // 初期化時にキャンバスをクリア
+        ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+        receivedCtx.clearRect(0, 0, receivedCanvas.width, receivedCanvas.height);
+      }
+
 
       ws.onopen = () => {
         // 接続時にjoinメッセージを送る
@@ -183,8 +391,11 @@
       ws.onmessage = (event) => {
         const msg = JSON.parse(event.data)
         if (msg.type === 'paint') {
-          const { x, y, control } = msg
+          const { x, y, control, color, width } = msg
           console.log({ control })
+          if (color) ctx.strokeStyle = color;
+          if (width) ctx.lineWidth = parseFloat(width);
+
           if (control === 'mousedown') {
             mousedown()
           } else if (control === 'mouseup') {
@@ -194,6 +405,15 @@
           } else if (control === 'mouseout') {
             mouseout()
           }
+        }
+
+        if (msg.type === 'image_sended') {
+          const img = new Image();
+          img.onload = function () {
+            receivedCtx.clearRect(0, 0, receivedCanvas.width, receivedCanvas.height);
+            receivedCtx.drawImage(img, 0, 0);
+          };
+          img.src = msg.imageData;
         }
 
         if (msg.type === 'players') {
@@ -211,18 +431,22 @@
           document.getElementById('turnSelect').parentElement.style.display = 'none';
           document.getElementById('startButton').style.display = 'none';
 
+          gameStarted = true;
+          setDrawingTurnUI();
+
+
           // 最初の文字をここで更新
           if (msg.firstChar) {
             const firstCharEl = document.getElementById('firstChar');
             firstCharEl.textContent = '最初の文字: ' + msg.firstChar;
             firstCharEl.style.display = 'inline';
-             console.log("最初の文字:", msg.firstChar);
+            console.log("最初の文字:", msg.firstChar);
           }
 
           // ターン順を表示または保持
           if (msg.turnOrder) {
             console.log("ターン順:", msg.turnOrder);
-        
+
             alert(`最初の文字: ${msg.firstChar}\nターン順: ${msg.turnOrder.join(" → ")}`);
           }
         }
@@ -231,6 +455,15 @@
           const { id, text } = msg
           appendMessage(msg.id, msg.text, myId);
         }
+
+        if (msg.type === 'answer') {
+          const { id, text } = msg;
+          answers.push({ id, text });
+          console.log("保存された回答:", answers); // デバッグ用
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+
         else if (msg.type === 'join') {
           players.add(msg.id); // 入室したユーザーをセットに追加
           updatePlayerCountDisplay();
@@ -254,15 +487,48 @@
         messageList.appendChild(li);
       }
 
-      const form = document.querySelector('.form')
+      const chatForm = document.querySelector('.form')
 
-      form.onsubmit = function (e) {
+
+
+      chatForm.onsubmit = function (e) {
         e.preventDefault()
         const input = document.querySelector('.input')
         const text = input.value
-        ws.send(JSON.stringify({ id: myId, text, type: 'chat' }))
-        input.value = ''
-        input.focus()
+
+        if (!gameStarted) {
+          if (text !== '') { // 空のメッセージは送信しない
+            ws.send(JSON.stringify({ id: myId, text: text, type: 'chat' }));
+          }
+          input.value = ''
+          input.focus()
+          return;
+        }
+
+        if (isAnsweringTurn) {
+          if (text !== '') {
+            ws.send(JSON.stringify({ id: myId, text: text, type: 'answer' }));
+            answers.push({ id: myId, text: text });
+            input.value = ''
+            input.focus()
+          }
+          //回答送信後次の人の絵のターンへ
+          setDrawingTurnUI();
+        }
+
+      }
+
+      sendPictureButton.onclick = () => {
+        if (gameStarted && isDrawingTurn) {
+          currentDrawingData = canvas.toDataURL('image/png');
+          drawnImages.push(currentDrawingData);
+          console.log("保存された画像:" + drawnImages)
+
+          // 描かれた画像をサーバーに送信
+          ws.send(JSON.stringify({ type: 'image_sended', imageData: currentDrawingData }));
+
+          setAnsweringTurnUI();
+        }
       }
 
       ws.onerror = function (error) {
