@@ -9,6 +9,9 @@ let connects = []
 let chatHistory = [];
 let players = new Set()
 
+let turnOrder = [];       // ターン順をグローバル管理
+let currentTurnIndex = 0; // 現在のターンのインデックス
+
 app.use(express.static('public'))
 
 app.ws('/ws', (ws, req) => {
@@ -55,11 +58,38 @@ app.ws('/ws', (ws, req) => {
       // ひらがな1文字をランダムに選ぶ
       const firstChar = getRandomHiragana();
       const shuffledPlayers = Array.from(players).sort(() => Math.random() - 0.5);
+      currentTurnIndex = 0;
+
       // 全接続にゲーム開始通知を送る
       connects.forEach((socket) => {
         if (socket.readyState === 1) {
           socket.send(JSON.stringify({
             type: 'start', firstChar: firstChar, turnOrder: shuffledPlayers,
+          }));
+        }
+      });
+      return;
+    }
+
+    if (msg.type === 'answer') {
+      // 他クライアントに回答を送信（保存処理もあれば実装）
+      connects.forEach((socket) => {
+        if (socket.readyState === 1) {
+          socket.send(message);  // 受け取ったanswerメッセージをそのまま送る
+        }
+      });
+
+
+      currentTurnIndex++;
+      if (currentTurnIndex >= turnOrder.length) {
+        currentTurnIndex = 0;
+        // ここでラウンド処理もあれば追記
+      }
+      connects.forEach((socket) => {
+        if (socket.readyState === 1) {
+          socket.send(JSON.stringify({
+            type: 'next_turn',
+            currentPlayer: turnOrder[currentTurnIndex],
           }));
         }
       });
@@ -77,6 +107,7 @@ app.ws('/ws', (ws, req) => {
       }
     })
   })
+
 
   ws.on('close', () => {
     connects = connects.filter((conn) => conn !== ws)
