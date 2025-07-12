@@ -198,7 +198,7 @@
 
 
       const startButton = document.getElementById('startButton');
-    //  const chatArea = document.querySelector('.chat');
+      const chatArea = document.querySelector('.chat');
 
       //チャット入力欄と、sendボタン、画像sendボタン
       const chatInput = document.getElementById('chatInput'); // chatInputのIDを追加
@@ -424,7 +424,7 @@
 
         if (msg.type === 'start') {
           // 全員が受け取るとここが動くので画面切り替え
-        //  chatArea.style.display = 'none';
+          chatArea.style.display = 'block';
           canvas.style.display = 'block';
 
           document.getElementById('roundSelect').parentElement.style.display = 'none';
