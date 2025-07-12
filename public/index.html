@@ -32,13 +32,11 @@
       text-align: left;
     }
 
+    /* 選択ボタンのスタイル */
     .number-input {
       width: 80px;
-      /* 横幅を大きくする */
       padding: 5px;
-      /* 内側の余白 */
       font-size: 16px;
-      /* 文字を大きくする */
     }
 
     .form {
@@ -56,6 +54,82 @@
       border: 1px solid #ccc;
       background: #eee;
       cursor: pointer;
+    }
+
+    /* 横並び*/
+    .box {
+      display: flex;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    /* ピッカーの見た目を変更 */
+    input[type="color"] {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      display: inline-block;
+      margin-right: 18px;
+      border: 1px solid rgb(0, 0, 0);
+      border-radius: 50%;
+    }
+
+    input[type="color"]::-webkit-color-swatch,
+    input[type="color"]::-webkit-color-swatch-wrapper {
+      border: none;
+      padding: 0;
+      border-radius: 50%;
+    }
+
+    /* [type="text"] コード入力エリアの見た目を変更 */
+    input[type="text"] {
+      border: 1px solid rgb(0, 0, 0);
+      padding: 5px;
+    }
+
+    #eraserToggle {
+      margin-left: 10px;
+    }
+
+    /* 線の太さやカラーピッカーの場所を一律管理 */
+    .drawing-tools {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+      gap: 15px;
+      /* 要素間のスペース */
+      flex-wrap: wrap;
+      /* 要素が収まらない場合に折り返す */
+      justify-content: center;
+      /* ツールを中央寄せ */
+    }
+
+    /* 2つのキャンバスを横並びにするコンテナ */
+    .canvases-container {
+      display: flex;
+      gap: 20px;
+      /* キャンバス間のスペース */
+      margin: 20px auto;
+      /* 上下の余白と左右中央寄せ */
+      justify-content: center;
+      /* キャンバスを中央寄せ */
+      align-items: flex-start;
+      /* 上端を揃える */
+    }
+
+    .canvases-container canvas {
+      display: block;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    #receivedCanvas {
+      border: solid 1px red;
+      /* 受信用キャンバスの枠線 */
+    }
+
+    #canvas {
+      border: solid 1px black;
+      /* 描画用キャンバスの枠線 */
     }
   </style>
 </head>
@@ -85,11 +159,33 @@
     <span id="firstChar" style="display: none;">最初の文字は </span>
     入室人数: <span id="playerCount">0</span>人
   </div>
-  <div id="turnDisplay" style="font-size: 18px; font-weight: bold; margin-bottom: 10px;"></div>
-  <canvas id="canvas" width="600" height="600" style="border: solid 1px black; display: none;"></canvas>
-  <button id="sendPictureButton" style="display: none;">Send Picture</button>
 
-  <canvas id="canvas" width="600" height="600" style="border: solid 1px black; display: none;"></canvas>
+  <div id="turnDisplay" style="font-size: 18px; font-weight: bold; margin-bottom: 10px;"></div>
+
+  <!-- ふたつのキャンバス -->
+  <div class="canvases-container">
+    <canvas id="receivedCanvas" width="600" height="600"></canvas>
+    <canvas id="canvas" width="600" height="600"></canvas>
+  </div>
+
+  <div class="drawing-tools">
+    <!-- 線の太さ -->
+    <label>
+      線の太さ:
+      <input type="range" id="lineWidthSlider" min="1" max="20" value="5">
+    </label>
+    <!-- カラーピッカー -->
+    <input type="color" id="colorPicker" value="#000000">
+    <!-- 消しゴム-->
+    <button id="eraserToggle">消しゴム OFF</button>
+
+    <!-- sendPictureボタン追加 -->
+    <button id="sendPictureButton">Send Picture</button>
+
+  </div>
+
+
+  <!-- <canvas id="canvas" width="600" height="600" style="border: solid 1px black; display: none;"></canvas> -->
 
   <div id="waitingScreen" style="
   display: none;
@@ -114,8 +210,27 @@
       let turnOrder = [];     // 全体の順番
       let currentTurnIndex = 0; // 現在のターンのインデックス
 
+      //ゲーム開始状態を管理
+      let gameStarted = false;
+      //回答を保存する配列
+      let answers = [];
+      //描かれた画像を保存する配列
+      let drawnImages = [];
+      //一時的に描かれた画像を保持する
+      let currentDrawingData = null;
+
       const startButton = document.getElementById('startButton');
       const chatArea = document.querySelector('.chat');
+
+      //チャット入力欄と、sendボタン、画像sendボタン
+      const chatInput = document.getElementById('chatInput'); // chatInputのIDを追加
+      const chatSubmitButton = document.getElementById('chatSubmitButton'); // chatSubmitButtonのIDを追加
+      const sendPictureButton = document.getElementById('sendPictureButton'); // 新しいボタンを取得
+      const drawingToolsContainer = document.querySelector('.drawing-tools');
+
+      //描画モードか、回答入力モードか
+      let isDrawingTurn = false; //絵を描くターンかどうか
+      let isAnsweringTurn = false; //回答入力ターンかどうか
 
       // ゲーム開始ボタンイベント
       startButton.onclick = () => {
@@ -129,8 +244,13 @@
 
         if (confirmed) {
           ws.send(JSON.stringify({ type: 'start' }));
+          gameStarted = true; //ゲーム開始状態にする(オガワ)
+          //ゲーム開始時は描画ターン(オガワ)
+          setDrawingTurnUI();
         }
       };
+
+
 
       const canvas = document.getElementById('canvas')
       const ctx = canvas.getContext('2d')
@@ -170,6 +290,7 @@
           playerCountElement.textContent = players.size;
         }
       }
+
 
       let drawing = false
 
@@ -261,7 +382,7 @@
 
             turnOrder = msg.turnOrder;
             currentTurnIndex = 0;
-            updateTurnDisplay(); 
+            updateTurnDisplay();
 
             alert(`最初の文字: ${msg.firstChar}\nターン順: ${msg.turnOrder.join(" → ")}`);
           }
