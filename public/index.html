@@ -2,111 +2,111 @@
 <html lang="ja">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chat App</title>
-    <style>
-        /* 既存のスタイル */
-        .chat {
-            display: flex;
-            flex-direction: column;
-            height: 80vh;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat App</title>
+  <style>
+    /* 既存のスタイル */
+    .chat {
+      display: flex;
+      flex-direction: column;
+      height: 80vh;
+    }
 
-        .messages {
-            flex: 1;
-            overflow-y: auto;
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
 
-        .my-message {
-            align-self: flex-end;
-            margin-left: auto;
-            text-align: right;
-        }
+    .my-message {
+      align-self: flex-end;
+      margin-left: auto;
+      text-align: right;
+    }
 
-        .other-message {
-            align-self: flex-start;
-            margin-right: auto;
-            text-align: left;
-        }
+    .other-message {
+      align-self: flex-start;
+      margin-right: auto;
+      text-align: left;
+    }
 
-        .number-input {
-            width: 80px;
-            padding: 5px;
-            font-size: 16px;
-        }
+    .number-input {
+      width: 80px;
+      padding: 5px;
+      font-size: 16px;
+    }
 
-        .form {
-            display: flex;
-        }
+    .form {
+      display: flex;
+    }
 
-        .input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-        }
+    .input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
 
-        .submit {
-            padding: 10px;
-            border: 1px solid #ccc;
-            background: #eee;
-            cursor: pointer;
-        }
+    .submit {
+      padding: 10px;
+      border: 1px solid #ccc;
+      background: #eee;
+      cursor: pointer;
+    }
 
-        /* 新しいスタイル (必要に応じて追加) */
-        #gameTimer {
-            color: blue;
-            font-weight: bold;
-        }
-    </style>
+    /* 新しいスタイル (必要に応じて追加) */
+    #gameTimer {
+      color: blue;
+      font-weight: bold;
+    }
+  </style>
 </head>
 
 <body>
-    <div class="chat">
-        <ul class="messages"></ul>
-        <form class="form">
-            <input class="input" autocomplete="off" />
-            <button class="submit">Send</button>
-        </form>
-    </div>
+  <div class="chat">
+    <ul class="messages"></ul>
+    <form class="form">
+      <input class="input" autocomplete="off" />
+      <button class="submit">Send</button>
+    </form>
+  </div>
 
-    <div style="margin-top: 20px;">
-        <label>
-            ラウンド数:
-            <input type="number" id="roundSelect" class="number-input" min="1" max="10" step="1" value="3">
-        </label>
-        <label style="margin-left: 20px;">
-            ターン数:
-            <input type="number" id="turnSelect" class="number-input" min="1" max="5" step="1" value="2">
-        </label>
-        <button id="startButton" style="margin-left: 20px;">ゲーム開始</button>
-    </div>
+  <div style="margin-top: 20px;">
+    <label>
+      ラウンド数:
+      <input type="number" id="roundSelect" class="number-input" min="1" max="10" step="1" value="3">
+    </label>
+    <label style="margin-left: 20px;">
+      ターン数:
+      <input type="number" id="turnSelect" class="number-input" min="1" max="5" step="1" value="2">
+    </label>
+    <button id="startButton" style="margin-left: 20px;">ゲーム開始</button>
+  </div>
 
-    <div id="gameStatus" style="font-size: 20px; font-weight: bold; margin: 10px 0;">
-        <span id="firstChar" style="display: none;">最初の文字は </span>
-        入室人数: <span id="playerCount">0</span>人
-        <span id="gameTimer" style="margin-left: 20px;"></span>
-    </div>
+  <div id="gameStatus" style="font-size: 20px; font-weight: bold; margin: 10px 0;">
+    <span id="firstChar" style="display: none;">最初の文字は </span>
+    入室人数: <span id="playerCount">0</span>人
+    <span id="gameTimer" style="margin-left: 20px;"></span>
+  </div>
 
-    <div id="turnDisplay" style="font-size: 18px; font-weight: bold; margin-bottom: 10px;"></div>
+  <div id="turnDisplay" style="font-size: 18px; font-weight: bold; margin-bottom: 10px;"></div>
 
-    <div id="drawingControls" style="display: none;">
-        <button id="sendDrawingButton">描画終了</button>
-        <button id="clearCanvasButton" style="margin-left: 10px;">キャンバスをクリア</button>
-    </div>
+  <div id="drawingControls" style="display: none;">
+    <button id="sendDrawingButton">描画終了</button>
+    <button id="clearCanvasButton" style="margin-left: 10px;">キャンバスをクリア</button>
+  </div>
 
-    <div id="answeringControls" style="display: none;">
-        <label for="answerInput">何を描いたか記入:</label>
-        <input type="text" id="answerInput" style="width: 200px; padding: 5px;" />
-        <button id="submitAnswerButton" style="margin-left: 10px;">回答送信</button>
-    </div>
+  <div id="answeringControls" style="display: none;">
+    <label for="answerInput">何を描いたか記入:</label>
+    <input type="text" id="answerInput" style="width: 200px; padding: 5px;" />
+    <button id="submitAnswerButton" style="margin-left: 10px;">回答送信</button>
+  </div>
 
-    <canvas id="canvas" width="600" height="600" style="border: solid 1px black; display: none;"></canvas>
+  <canvas id="canvas" width="600" height="600" style="border: solid 1px black; display: none;"></canvas>
 
-    <div id="waitingScreen" style="
+  <div id="waitingScreen" style="
       width: 600px;
       height: 600px;
       background-color: white;
@@ -118,445 +118,460 @@
       display: none; /* ここで初期表示を none に設定します */
     ">待機中...</div>
 
-    <script>
-        // myId と ws をグローバルスコープで宣言し、一度だけ初期化されるようにします
-        let myId;
-        let ws;
+  <script>
+    // myId と ws をグローバルスコープで宣言し、一度だけ初期化されるようにします
+    let myId;
+    let ws;
 
-        function main() {
-            // ユーザー名がまだ設定されていない場合のみプロンプトを表示
-            if (!myId) {
-                myId = prompt("ユーザー名を入力してください")?.trim() || self.crypto.randomUUID().substr(0, 8);
-            }
+    function main() {
+      // ユーザー名がまだ設定されていない場合のみプロンプトを表示
+      if (!myId) {
+        myId = prompt("ユーザー名を入力してください")?.trim() || self.crypto.randomUUID().substr(0, 8);
+      }
 
-            const host = location.origin.replace(/^http/, 'ws');
-            // WebSocketがまだ接続されていないか、閉じている場合のみ新しい接続を確立
-            if (!ws || ws.readyState === WebSocket.CLOSED) {
-                ws = new WebSocket(host + '/ws');
-            } else {
-                // 既に接続済みであれば、改めてmain関数内のロジックを再初期化する必要はないので終了
-                console.log("WebSocketは既に開いています。");
-                updateUIForPhase(); // UIの状態だけは更新する
-                return;
-            }
-
-
-            // --- ここから先の変数はmain関数内（閉じたスコープ）で定義します ---
-            let players = new Set();
-            let turnOrder = [];
-            let currentTurnIndex = 0;
-            let currentRound = 1;
-            let maxRounds = 3;
-            let gamePhase = 'idle';
-            let currentTimer = 0;
-            let timerInterval = null;
-            const drawingTimeLimit = 30;
-            const answeringTimeLimit = 15;
-
-            // --- DOM要素の取得 ---
-            const startButton = document.getElementById('startButton');
-            // const chatArea = document.querySelector('.chat'); // 今回は未使用なのでコメントアウト
-            const canvas = document.getElementById('canvas');
-            const ctx = canvas.getContext('2d');
-            const waitingScreen = document.getElementById('waitingScreen');
-            const gameTimerDisplay = document.getElementById('gameTimer');
-            const sendDrawingButton = document.getElementById('sendDrawingButton');
-            const clearCanvasButton = document.getElementById('clearCanvasButton');
-            const answerInput = document.getElementById('answerInput');
-            const submitAnswerButton = document.getElementById('submitAnswerButton');
-            const drawingControls = document.getElementById('drawingControls');
-            const answeringControls = document.getElementById('answeringControls');
-            const chatForm = document.querySelector('.form');
-            const chatInput = document.querySelector('.input');
-
-            // UI要素の取得（親要素も含む）
-            const roundSelectParent = document.getElementById('roundSelect').parentElement;
-            const turnSelectParent = document.getElementById('turnSelect').parentElement;
+      const host = location.origin.replace(/^http/, 'ws');
+      // WebSocketがまだ接続されていないか、閉じている場合のみ新しい接続を確立
+      if (!ws || ws.readyState === WebSocket.CLOSED) {
+        ws = new WebSocket(host + '/ws');
+      } else {
+        // 既に接続済みであれば、改めてmain関数内のロジックを再初期化する必要はないので終了
+        console.log("WebSocketは既に開いています。");
+        updateUIForPhase(); // UIの状態だけは更新する
+        return;
+      }
 
 
-            // --- UI表示の更新関数 ---
-            function updateUIForPhase() {
-                const currentPlayer = turnOrder[currentTurnIndex];
-                const isMyTurn = (currentPlayer === myId);
+      // --- ここから先の変数はmain関数内（閉じたスコープ）で定義します ---
+      let players = new Set();
+      let turnOrder = [];
+      let currentTurnIndex = 0;
+      let currentRound = 1;
+      let maxRounds = 3;
+      let gamePhase = 'idle';
+      let currentTimer = 0;
+      let timerInterval = null;
+      const drawingTimeLimit = 30;
+      const answeringTimeLimit = 15;
 
-                // 各フェーズに共通するUIの初期状態を設定
-                canvas.style.display = 'none';
-                waitingScreen.style.display = 'flex'; // 基本的に待機画面は表示
-                drawingControls.style.display = 'none';
-                answeringControls.style.display = 'none';
-                chatForm.style.display = 'flex'; // チャットは常に表示
+      // --- DOM要素の取得 ---
+      const startButton = document.getElementById('startButton');
+      // const chatArea = document.querySelector('.chat'); // 今回は未使用なのでコメントアウト
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      const waitingScreen = document.getElementById('waitingScreen');
+      const gameTimerDisplay = document.getElementById('gameTimer');
+      const sendDrawingButton = document.getElementById('sendDrawingButton');
+      const clearCanvasButton = document.getElementById('clearCanvasButton');
+      const answerInput = document.getElementById('answerInput');
+      const submitAnswerButton = document.getElementById('submitAnswerButton');
+      const drawingControls = document.getElementById('drawingControls');
+      const answeringControls = document.getElementById('answeringControls');
+      const chatForm = document.querySelector('.form');
+      const chatInput = document.querySelector('.input');
 
-                if (gamePhase === 'drawing') {
-                    waitingScreen.textContent = `${currentPlayer}が描画中...`;
-                    canvas.style.display = 'block'; // 描画中はキャンバス表示
-
-                    // ゲーム開始前の設定UIは非表示
-                    roundSelectParent.style.display = 'none';
-                    turnSelectParent.style.display = 'none';
-                    startButton.style.display = 'none';
-
-                    if (isMyTurn) {
-                        waitingScreen.style.display = 'none'; // 自分の番の描画者は待機画面を非表示
-                        drawingControls.style.display = 'block'; // 描画ボタン表示
-                        chatForm.style.display = 'none'; // 自分の番中はチャット非表示
-                    }
-
-                } else if (gamePhase === 'answering') {
-                    waitingScreen.textContent = `${currentPlayer}が回答中...`;
-                    canvas.style.display = 'block'; // 回答中もキャンバス表示
-
-                    // ゲーム開始前の設定UIは非表示
-                    roundSelectParent.style.display = 'none';
-                    turnSelectParent.style.display = 'none';
-                    startButton.style.display = 'none';
-
-                    if (isMyTurn) {
-                        waitingScreen.style.display = 'none'; // 自分の番の回答者は待機画面を非表示
-                        answeringControls.style.display = 'block'; // 回答UI表示
-                        chatForm.style.display = 'none'; // 回答に集中させるためチャット非表示
-                    }
-
-                } else { // 'idle' またはゲーム終了時
-                    waitingScreen.textContent = '待機中...';
-                    // 'idle' の場合はゲーム開始前の設定UIを表示
-                    roundSelectParent.style.display = 'block';
-                    turnSelectParent.style.display = 'block';
-                    startButton.style.display = 'block';
-                }
-            }
-
-            // --- タイマー関連関数 ---
-            function startTimer(duration, onTimeEnd, onTick) {
-                clearInterval(timerInterval); // 既存のタイマーをクリア
-                currentTimer = duration;
-                gameTimerDisplay.textContent = `残り時間: ${currentTimer}秒`;
-
-                timerInterval = setInterval(() => {
-                    currentTimer--;
-                    gameTimerDisplay.textContent = `残り時間: ${currentTimer}秒`;
-                    if (onTick) onTick(currentTimer);
-
-                    if (currentTimer <= 0) {
-                        clearInterval(timerInterval);
-                        onTimeEnd();
-                    }
-                }, 1000);
-            }
-
-            function startDrawingPhase() {
-                gamePhase = 'drawing';
-                updateUIForPhase();
-                startTimer(drawingTimeLimit, () => {
-                    console.log("描画時間終了 (自動)");
-                    nextPhase();
-                });
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ws.send(JSON.stringify({ type: 'clear_canvas' }));
-            }
-
-            function startAnsweringPhase() {
-                gamePhase = 'answering';
-                updateUIForPhase();
-                answerInput.value = '';
-                if (turnOrder[currentTurnIndex] === myId) {
-                    answerInput.focus();
-                }
-                startTimer(answeringTimeLimit, () => {
-                    console.log("回答時間終了 (自動)");
-                    nextTurn();
-                });
-            }
-
-            function nextPhase() {
-                if (gamePhase === 'drawing') {
-                    console.log('描画フェーズ終了 -> 回答フェーズ開始');
-                    startAnsweringPhase();
-                } else {
-                    console.log('回答フェーズ終了 -> 次のターンへ');
-                    nextTurn();
-                }
-            }
-
-            function nextTurn() {
-                currentTurnIndex = (currentTurnIndex + 1) % turnOrder.length;
-
-                if (currentTurnIndex === 0) {
-                    currentRound++;
-                    console.log(`ラウンド ${currentRound} 開始`);
-                }
-
-                if (currentRound > maxRounds) {
-                    console.log("ゲーム終了！");
-                    alert("ゲーム終了！");
-                    gamePhase = 'idle';
-                    clearInterval(timerInterval);
-                    updateUIForPhase();
-                    document.getElementById('firstChar').style.display = 'none';
-                    document.getElementById('gameTimer').textContent = '';
-                    return;
-                }
-
-                updateTurnDisplay();
-                startDrawingPhase();
-            }
+      // UI要素の取得（親要素も含む）
+      const roundSelectParent = document.getElementById('roundSelect').parentElement;
+      const turnSelectParent = document.getElementById('turnSelect').parentElement;
 
 
-            // --- 描画イベント関連 ---
-            let drawing = false;
+      // --- UI表示の更新関数 ---
+      function updateUIForPhase() {
+        const currentPlayer = turnOrder[currentTurnIndex];
+        const isMyTurn = (currentPlayer === myId);
 
-            canvas.addEventListener('mousedown', (e) => {
-                if (gamePhase === 'drawing' && turnOrder[currentTurnIndex] === myId) {
-                    sendDrawingEvent(e.offsetX, e.offsetY, 'mousedown');
-                }
-            });
-            function mousedown() {
-                drawing = true;
-                ctx.beginPath();
-            }
+        // 各フェーズに共通するUIの初期状態を設定
+        canvas.style.display = 'none'; // ★ まずキャンバスを非表示に設定
+        waitingScreen.style.display = 'flex';
+        drawingControls.style.display = 'none';
+        answeringControls.style.display = 'none';
+        chatForm.style.display = 'flex';
 
-            canvas.addEventListener('mousemove', (e) => {
-                if (drawing && gamePhase === 'drawing' && turnOrder[currentTurnIndex] === myId) {
-                    sendDrawingEvent(e.offsetX, e.offsetY, 'mousemove');
-                }
-            });
-            function mousemove(x, y) {
-                if (drawing) {
-                    ctx.lineTo(x, y);
-                    ctx.stroke();
-                } else {
-                    ctx.moveTo(x, y);
-                }
-            }
+        if (gamePhase === 'drawing') {
+          waitingScreen.textContent = `${currentPlayer}が描画中...`;
 
-            canvas.addEventListener('mouseup', (e) => {
-                if (gamePhase === 'drawing' && turnOrder[currentTurnIndex] === myId) {
-                    sendDrawingEvent(e.offsetX, e.offsetY, 'mouseup');
-                }
-            });
-            function mouseup() {
-                drawing = false;
-                ctx.beginPath();
-            }
+          // ゲーム開始前の設定UIは非表示
+          roundSelectParent.style.display = 'none';
+          turnSelectParent.style.display = 'none';
+          startButton.style.display = 'none';
 
-            canvas.addEventListener('mouseout', (e) => {
-                if (gamePhase === 'drawing' && turnOrder[currentTurnIndex] === myId) {
-                    sendDrawingEvent(e.offsetX, e.offsetY, 'mouseout');
-                }
-            });
-            function mouseout() {
-                drawing = false;
-            }
+          if (isMyTurn) {
+            // 自分の番の描画者: キャンバス表示、待機画面非表示、描画UI表示、チャット非表示
+            canvas.style.display = 'block'; // ★ 自分の番の時だけキャンバスを表示
+            waitingScreen.style.display = 'none';
+            drawingControls.style.display = 'block';
+            chatForm.style.display = 'none';
+          } else {
+            // 他の人の番（見学者）: キャンバスは非表示のまま、待機画面表示、描画UI非表示、回答UI非表示、チャット可能
+            // canvas.style.display はすでに 'none' なので変更不要
+            // waitingScreen.style.display はすでに 'flex' なので変更不要
+            drawingControls.style.display = 'none';
+            answeringControls.style.display = 'none';
+            chatForm.style.display = 'flex';
+          }
 
-            function sendDrawingEvent(x, y, control) {
-                const message = JSON.stringify({ x, y, control, type: 'paint' });
-                ws.send(message);
-            }
+        } else if (gamePhase === 'answering') {
+          waitingScreen.textContent = `${currentPlayer}が回答中...`;
+          canvas.style.display = 'block'; // 回答フェーズでは、描かれた絵を見るためにキャンバスは表示
 
-            function draw(x, y, isRemote) { // リモートからの描画を処理する関数
-                // isRemoteは、受信した描画イベントが自分以外からのものかを示すために使用
-                // mousemove関数がすでにctx.lineToとctx.strokeを含んでいるため、
-                // ここでは直接mouseMoveを呼ぶことで統一性を保つ
-                if (isRemote) {
-                    mousemove(x, y);
-                }
-            }
+          // ゲーム開始前の設定UIは非表示
+          roundSelectParent.style.display = 'none';
+          turnSelectParent.style.display = 'none';
+          startButton.style.display = 'none';
 
+          if (isMyTurn) {
+            waitingScreen.style.display = 'none';
+            answeringControls.style.display = 'block';
+            chatForm.style.display = 'none';
+          } else {
+            // 他の人の番（見学者）
+            // canvas.style.display はすでに 'block' なので変更不要
+            // waitingScreen.style.display はすでに 'flex' なので変更不要
+            drawingControls.style.display = 'none';
+            answeringControls.style.display = 'none';
+            chatForm.style.display = 'flex';
+          }
 
-            function clearCanvas() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ws.send(JSON.stringify({ type: 'clear_canvas' }));
-            }
+        } else { // 'idle' またはゲーム終了時
+          waitingScreen.textContent = '待機中...';
+          // 'idle' の場合はゲーム開始前の設定UIを表示
+          roundSelectParent.style.display = 'block';
+          turnSelectParent.style.display = 'block';
+          startButton.style.display = 'block';
+        }
+      }
 
-            // --- イベントリスナー ---
+      // --- タイマー関連関数 ---
+      function startTimer(duration, onTimeEnd, onTick) {
+        clearInterval(timerInterval); // 既存のタイマーをクリア
+        currentTimer = duration;
+        gameTimerDisplay.textContent = `残り時間: ${currentTimer}秒`;
 
-            startButton.onclick = () => {
-                maxRounds = parseInt(document.getElementById('roundSelect').value);
-                const playerCount = players.size;
+        timerInterval = setInterval(() => {
+          currentTimer--;
+          gameTimerDisplay.textContent = `残り時間: ${currentTimer}秒`;
+          if (onTick) onTick(currentTimer);
 
-                if (playerCount === 0) {
-                    alert('ゲームを開始するには、少なくとも1人以上のプレイヤーが必要です。');
-                    return;
-                }
+          if (currentTimer <= 0) {
+            clearInterval(timerInterval);
+            onTimeEnd();
+          }
+        }, 1000);
+      }
 
-                const confirmed = confirm(
-                    `入室人数: ${playerCount}人\nラウンド数: ${maxRounds}ラウンド\n\nゲームを開始しますか？`
-                );
+      function startDrawingPhase() {
+        gamePhase = 'drawing';
+        updateUIForPhase();
+        startTimer(drawingTimeLimit, () => {
+          console.log("描画時間終了 (自動)");
+          nextPhase();
+        });
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ws.send(JSON.stringify({ type: 'clear_canvas' }));
+      }
 
-                if (confirmed) {
-                    ws.send(JSON.stringify({ type: 'start', rounds: maxRounds }));
-                }
-            };
+      function startAnsweringPhase() {
+        gamePhase = 'answering';
+        updateUIForPhase();
+        answerInput.value = '';
+        if (turnOrder[currentTurnIndex] === myId) {
+          answerInput.focus();
+        }
+        startTimer(answeringTimeLimit, () => {
+          console.log("回答時間終了 (自動)");
+          nextTurn();
+        });
+      }
 
-            sendDrawingButton.onclick = () => {
-                if (gamePhase === 'drawing' && turnOrder[currentTurnIndex] === myId) {
-                    clearInterval(timerInterval);
-                    nextPhase();
-                } else {
-                    alert('今はあなたの描画ターンではありません。');
-                }
-            };
+      function nextPhase() {
+        if (gamePhase === 'drawing') {
+          console.log('描画フェーズ終了 -> 回答フェーズ開始');
+          startAnsweringPhase();
+        } else {
+          console.log('回答フェーズ終了 -> 次のターンへ');
+          nextTurn();
+        }
+      }
 
-            clearCanvasButton.onclick = () => {
-                if (gamePhase === 'drawing' && turnOrder[currentTurnIndex] === myId) {
-                    clearCanvas();
-                } else {
-                    alert('今はあなたの描画ターンではありません。');
-                }
-            };
+      function nextTurn() {
+        currentTurnIndex = (currentTurnIndex + 1) % turnOrder.length;
 
-            submitAnswerButton.onclick = () => {
-                if (gamePhase === 'answering' && turnOrder[currentTurnIndex] === myId) {
-                    const answer = answerInput.value.trim();
-                    if (answer) {
-                        clearInterval(timerInterval);
-                        ws.send(JSON.stringify({ type: 'submit_answer', id: myId, answer: answer }));
-                        nextTurn();
-                    } else {
-                        alert('回答を入力してください。');
-                    }
-                } else {
-                    alert('今はあなたの回答ターンではありません。');
-                }
-            };
-
-            chatForm.onsubmit = function (e) {
-                e.preventDefault();
-                const text = chatInput.value.trim();
-                if (text) {
-                    ws.send(JSON.stringify({ id: myId, text, type: 'chat' }));
-                    chatInput.value = '';
-                    chatInput.focus();
-                }
-            };
-
-            // --- WebSocketイベントハンドラ ---
-            ws.onopen = () => {
-                console.log("WebSocket接続が開かれました。ID:", myId);
-                ws.send(JSON.stringify({ type: 'join', id: myId }));
-                updateUIForPhase(); // 接続確立後、UIを初期状態に更新
-            };
-
-            ws.onmessage = (event) => {
-                const msg = JSON.parse(event.data);
-                console.log("メッセージ受信:", msg); // 受信メッセージのログを追加
-
-                switch (msg.type) {
-                    case 'paint':
-                        const { x, y, control } = msg;
-                        if (gamePhase === 'drawing') {
-                            if (control === 'mousedown') {
-                                mousedown();
-                            } else if (control === 'mouseup') {
-                                mouseup();
-                            } else if (control === 'mousemove') {
-                                // リモートからの描画は直接draw関数（内部でmousemoveを呼ぶ）で処理
-                                draw(x, y, true);
-                            } else if (control === 'mouseout') {
-                                mouseout();
-                            }
-                        }
-                        break;
-                    case 'clear_canvas':
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
-                        break;
-                    case 'players':
-                        players = new Set(msg.players);
-                        updatePlayerCountDisplay();
-                        break;
-                    case 'start':
-                        if (msg.firstChar && msg.turnOrder) {
-                            document.getElementById('firstChar').textContent = '最初の文字は ' + msg.firstChar;
-                            document.getElementById('firstChar').style.display = 'inline';
-                            turnOrder = msg.turnOrder;
-                            currentTurnIndex = 0;
-                            currentRound = 1;
-                            maxRounds = msg.rounds;
-
-                            updateTurnDisplay();
-                            startDrawingPhase();
-                            alert(`ゲーム開始！\n最初の文字: ${msg.firstChar}\nターン順: ${msg.turnOrder.join(" → ")}`);
-                        }
-                        break;
-                    case 'chat':
-                        appendMessage(msg.id, msg.text, myId);
-                        break;
-                    case 'join':
-                        // プレイヤーが既に存在しない場合のみ追加し、メッセージ表示
-                        if (!players.has(msg.id)) {
-                            players.add(msg.id);
-                            updatePlayerCountDisplay();
-                            appendMessage(msg.id, 'が入室しました', '');
-                        }
-                        break;
-                    case 'submit_answer':
-                        appendMessage(msg.id, `「${msg.answer}」と回答しました！`, '');
-                        break;
-                    case 'leave': // プレイヤーが退出したときの処理を追加（サーバーから送信されると仮定）
-                        if (players.has(msg.id)) {
-                            players.delete(msg.id);
-                            updatePlayerCountDisplay();
-                            appendMessage(msg.id, 'が退出しました', '');
-                        }
-                        break;
-                }
-            };
-
-            ws.onerror = function (error) {
-                console.error('WebSocket Error: ', error);
-            };
-
-            ws.onclose = function (event) {
-                console.log('WebSocket Closed: ', event.code, event.reason);
-                // WebSocket接続が閉じられたら、UIをアイドル状態に戻す
-                gamePhase = 'idle';
-                clearInterval(timerInterval);
-                updateUIForPhase();
-                document.getElementById('firstChar').style.display = 'none';
-                document.getElementById('gameTimer').textContent = '';
-                // 必要であれば、ここで再接続のロジックを追加することもできますが、
-                // 今回の問題解決には直接関わらないため、ここでは再接続は自動で行いません。
-            };
-
-            // --- ユーティリティ関数（既存） ---
-            function updateTurnDisplay() {
-                const display = turnOrder.map((name, index) => {
-                    if (index === currentTurnIndex) {
-                        return `<span style="color: red;">${name}</span>`;
-                    }
-                    return name;
-                }).join(" → ");
-                document.getElementById('turnDisplay').innerHTML = `ラウンド ${currentRound} - ターン順: ` + display;
-
-                updateUIForPhase();
-            }
-
-            function updatePlayerCountDisplay() {
-                const playerCountElement = document.getElementById('playerCount');
-                if (playerCountElement) {
-                    playerCountElement.textContent = players.size;
-                }
-            }
-
-            function appendMessage(id, text, myId) {
-                const messageList = document.querySelector('.messages');
-                const li = document.createElement('li');
-                // メッセージがチャットエリアに表示される際に、自分のメッセージと他人のメッセージを区別します
-                if (id === myId) {
-                    li.className = 'my-message';
-                    li.textContent = id + ': ' + text;
-                } else {
-                    li.className = 'other-message';
-                    li.textContent = id + ': ' + text;
-                }
-                messageList.appendChild(li);
-                messageList.scrollTop = messageList.scrollHeight;
-            }
+        if (currentTurnIndex === 0) {
+          currentRound++;
+          console.log(`ラウンド ${currentRound} 開始`);
         }
 
-        // ページが完全に読み込まれた後にmain関数を実行
-        // これにより、DOM要素が確実に利用可能になります
-        window.addEventListener('load', main);
-    </script>
+        if (currentRound > maxRounds) {
+          console.log("ゲーム終了！");
+          alert("ゲーム終了！");
+          gamePhase = 'idle';
+          clearInterval(timerInterval);
+          updateUIForPhase();
+          document.getElementById('firstChar').style.display = 'none';
+          document.getElementById('gameTimer').textContent = '';
+          return;
+        }
+
+        updateTurnDisplay();
+        startDrawingPhase();
+      }
+
+
+      // --- 描画イベント関連 ---
+      let drawing = false;
+
+      canvas.addEventListener('mousedown', (e) => {
+        if (gamePhase === 'drawing' && turnOrder[currentTurnIndex] === myId) {
+          sendDrawingEvent(e.offsetX, e.offsetY, 'mousedown');
+        }
+      });
+      function mousedown() {
+        drawing = true;
+        ctx.beginPath();
+      }
+
+      canvas.addEventListener('mousemove', (e) => {
+        if (drawing && gamePhase === 'drawing' && turnOrder[currentTurnIndex] === myId) {
+          sendDrawingEvent(e.offsetX, e.offsetY, 'mousemove');
+        }
+      });
+      function mousemove(x, y) {
+        if (drawing) {
+          ctx.lineTo(x, y);
+          ctx.stroke();
+        } else {
+          ctx.moveTo(x, y);
+        }
+      }
+
+      canvas.addEventListener('mouseup', (e) => {
+        if (gamePhase === 'drawing' && turnOrder[currentTurnIndex] === myId) {
+          sendDrawingEvent(e.offsetX, e.offsetY, 'mouseup');
+        }
+      });
+      function mouseup() {
+        drawing = false;
+        ctx.beginPath();
+      }
+
+      canvas.addEventListener('mouseout', (e) => {
+        if (gamePhase === 'drawing' && turnOrder[currentTurnIndex] === myId) {
+          sendDrawingEvent(e.offsetX, e.offsetY, 'mouseout');
+        }
+      });
+      function mouseout() {
+        drawing = false;
+      }
+
+      function sendDrawingEvent(x, y, control) {
+        const message = JSON.stringify({ x, y, control, type: 'paint' });
+        ws.send(message);
+      }
+
+      function draw(x, y, isRemote) { // リモートからの描画を処理する関数
+        // isRemoteは、受信した描画イベントが自分以外からのものかを示すために使用
+        // mousemove関数がすでにctx.lineToとctx.strokeを含んでいるため、
+        // ここでは直接mouseMoveを呼ぶことで統一性を保つ
+        if (isRemote) {
+          mousemove(x, y);
+        }
+      }
+
+
+      function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ws.send(JSON.stringify({ type: 'clear_canvas' }));
+      }
+
+      // --- イベントリスナー ---
+
+      startButton.onclick = () => {
+        maxRounds = parseInt(document.getElementById('roundSelect').value);
+        const playerCount = players.size;
+
+        if (playerCount === 0) {
+          alert('ゲームを開始するには、少なくとも1人以上のプレイヤーが必要です。');
+          return;
+        }
+
+        const confirmed = confirm(
+          `入室人数: ${playerCount}人\nラウンド数: ${maxRounds}ラウンド\n\nゲームを開始しますか？`
+        );
+
+        if (confirmed) {
+          ws.send(JSON.stringify({ type: 'start', rounds: maxRounds }));
+        }
+      };
+
+      sendDrawingButton.onclick = () => {
+        if (gamePhase === 'drawing' && turnOrder[currentTurnIndex] === myId) {
+          clearInterval(timerInterval);
+          nextPhase();
+        } else {
+          alert('今はあなたの描画ターンではありません。');
+        }
+      };
+
+      clearCanvasButton.onclick = () => {
+        if (gamePhase === 'drawing' && turnOrder[currentTurnIndex] === myId) {
+          clearCanvas();
+        } else {
+          alert('今はあなたの描画ターンではありません。');
+        }
+      };
+
+      submitAnswerButton.onclick = () => {
+        if (gamePhase === 'answering' && turnOrder[currentTurnIndex] === myId) {
+          const answer = answerInput.value.trim();
+          if (answer) {
+            clearInterval(timerInterval);
+            ws.send(JSON.stringify({ type: 'submit_answer', id: myId, answer: answer }));
+            nextTurn();
+          } else {
+            alert('回答を入力してください。');
+          }
+        } else {
+          alert('今はあなたの回答ターンではありません。');
+        }
+      };
+
+      chatForm.onsubmit = function (e) {
+        e.preventDefault();
+        const text = chatInput.value.trim();
+        if (text) {
+          ws.send(JSON.stringify({ id: myId, text, type: 'chat' }));
+          chatInput.value = '';
+          chatInput.focus();
+        }
+      };
+
+      // --- WebSocketイベントハンドラ ---
+      ws.onopen = () => {
+        console.log("WebSocket接続が開かれました。ID:", myId);
+        ws.send(JSON.stringify({ type: 'join', id: myId }));
+        updateUIForPhase(); // 接続確立後、UIを初期状態に更新
+      };
+
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        console.log("メッセージ受信:", msg); // 受信メッセージのログを追加
+
+        switch (msg.type) {
+          case 'paint':
+            const { x, y, control } = msg;
+            if (gamePhase === 'drawing') {
+              if (control === 'mousedown') {
+                mousedown();
+              } else if (control === 'mouseup') {
+                mouseup();
+              } else if (control === 'mousemove') {
+                // リモートからの描画は直接draw関数（内部でmousemoveを呼ぶ）で処理
+                draw(x, y, true);
+              } else if (control === 'mouseout') {
+                mouseout();
+              }
+            }
+            break;
+          case 'clear_canvas':
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            break;
+          case 'players':
+            players = new Set(msg.players);
+            updatePlayerCountDisplay();
+            break;
+          case 'start':
+            if (msg.firstChar && msg.turnOrder) {
+              document.getElementById('firstChar').textContent = '最初の文字は ' + msg.firstChar;
+              document.getElementById('firstChar').style.display = 'inline';
+              turnOrder = msg.turnOrder;
+              currentTurnIndex = 0;
+              currentRound = 1;
+              maxRounds = msg.rounds;
+
+              updateTurnDisplay();
+              startDrawingPhase();
+              alert(`ゲーム開始！\n最初の文字: ${msg.firstChar}\nターン順: ${msg.turnOrder.join(" → ")}`);
+            }
+            break;
+          case 'chat':
+            appendMessage(msg.id, msg.text, myId);
+            break;
+          case 'join':
+            // プレイヤーが既に存在しない場合のみ追加し、メッセージ表示
+            if (!players.has(msg.id)) {
+              players.add(msg.id);
+              updatePlayerCountDisplay();
+              appendMessage(msg.id, 'が入室しました', '');
+            }
+            break;
+          case 'submit_answer':
+            appendMessage(msg.id, `「${msg.answer}」と回答しました！`, '');
+            break;
+          case 'leave': // プレイヤーが退出したときの処理を追加（サーバーから送信されると仮定）
+            if (players.has(msg.id)) {
+              players.delete(msg.id);
+              updatePlayerCountDisplay();
+              appendMessage(msg.id, 'が退出しました', '');
+            }
+            break;
+        }
+      };
+
+      ws.onerror = function (error) {
+        console.error('WebSocket Error: ', error);
+      };
+
+      ws.onclose = function (event) {
+        console.log('WebSocket Closed: ', event.code, event.reason);
+        // WebSocket接続が閉じられたら、UIをアイドル状態に戻す
+        gamePhase = 'idle';
+        clearInterval(timerInterval);
+        updateUIForPhase();
+        document.getElementById('firstChar').style.display = 'none';
+        document.getElementById('gameTimer').textContent = '';
+        // 必要であれば、ここで再接続のロジックを追加することもできますが、
+        // 今回の問題解決には直接関わらないため、ここでは再接続は自動で行いません。
+      };
+
+      // --- ユーティリティ関数（既存） ---
+      function updateTurnDisplay() {
+        const display = turnOrder.map((name, index) => {
+          if (index === currentTurnIndex) {
+            return `<span style="color: red;">${name}</span>`;
+          }
+          return name;
+        }).join(" → ");
+        document.getElementById('turnDisplay').innerHTML = `ラウンド ${currentRound} - ターン順: ` + display;
+
+        updateUIForPhase();
+      }
+
+      function updatePlayerCountDisplay() {
+        const playerCountElement = document.getElementById('playerCount');
+        if (playerCountElement) {
+          playerCountElement.textContent = players.size;
+        }
+      }
+
+      function appendMessage(id, text, myId) {
+        const messageList = document.querySelector('.messages');
+        const li = document.createElement('li');
+        // メッセージがチャットエリアに表示される際に、自分のメッセージと他人のメッセージを区別します
+        if (id === myId) {
+          li.className = 'my-message';
+          li.textContent = id + ': ' + text;
+        } else {
+          li.className = 'other-message';
+          li.textContent = id + ': ' + text;
+        }
+        messageList.appendChild(li);
+        messageList.scrollTop = messageList.scrollHeight;
+      }
+    }
+
+    // ページが完全に読み込まれた後にmain関数を実行
+    // これにより、DOM要素が確実に利用可能になります
+    window.addEventListener('load', main);
+  </script>
 </body>
 
 </html>
