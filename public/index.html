@@ -216,13 +216,14 @@
             const firstCharEl = document.getElementById('firstChar');
             firstCharEl.textContent = '最初の文字: ' + msg.firstChar;
             firstCharEl.style.display = 'inline';
+             console.log("最初の文字:", msg.firstChar);
           }
 
           // ターン順を表示または保持
           if (msg.turnOrder) {
             console.log("ターン順:", msg.turnOrder);
-            // 必要であれば画面にも表示可能
-            alert("ターン順: " + msg.turnOrder.join(" → "));
+        
+            alert(`最初の文字: ${msg.firstChar}\nターン順: ${msg.turnOrder.join(" → ")}`);
           }
         }
 
