@@ -384,6 +384,21 @@
         receivedCtx.clearRect(0, 0, receivedCanvas.width, receivedCanvas.height);
       }
 
+      function showWaitingScreen(currentPlayer) {
+        isDrawingTurn = false;
+        isAnsweringTurn = false;
+        disableDrawingTools();
+        chatForm.style.display = 'none';
+        sendPictureButton.style.display = 'none';
+
+        // 待機メッセージ表示
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = "24px sans-serif";
+        ctx.fillStyle = "gray";
+        ctx.textAlign = "center";
+        ctx.fillText(`「${currentPlayer}」が回答中です...`, canvas.width / 2, canvas.height / 2);
+      }
 
       ws.onopen = () => {
         // 接続時にjoinメッセージを送る
@@ -487,11 +502,12 @@
               : `<span>${playerId}</span>`;
           }).join(' → ');
           turnOrderDisplay.style.display = 'inline';
-
           if (currentPlayer === myId) {
-            setDrawingTurnUI();
-          } else {
+            // 自分のターン（回答する）
             setAnsweringTurnUI();
+          } else {
+            // 他のプレイヤーは待機画面
+            showWaitingScreen(currentPlayer);
           }
         }
 
