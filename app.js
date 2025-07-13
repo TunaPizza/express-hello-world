@@ -63,7 +63,7 @@ app.ws('/ws', (ws, req) => {
     if (msg.type === 'start') {
       // ひらがな1文字をランダムに選ぶ
       const firstChar = getRandomHiragana();
-      const shuffledPlayers = Array.from(players).sort(() => Math.random() - 0.5);
+      turnOrder = Array.from(players).sort(() => Math.random() - 0.5);
       currentTurnIndex = 0;
 
       // 全接続にゲーム開始通知を送る
@@ -72,10 +72,11 @@ app.ws('/ws', (ws, req) => {
           socket.send(JSON.stringify({
             type: 'start',
             firstChar: firstChar,
-            turnOrder: shuffledPlayers,
+            turnOrder: turnOrder,
           }));
         }
       });
+      notifyNextTurn();
       return;
     }
 
@@ -98,6 +99,7 @@ app.ws('/ws', (ws, req) => {
           socket.send(JSON.stringify({
             type: 'next_turn',
             currentPlayer: turnOrder[currentTurnIndex],
+            turnOrder: turnOrder
           }));
         }
       });
