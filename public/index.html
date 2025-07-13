@@ -486,7 +486,7 @@
         }
 
 
-        else if (msg.type === 'join') {
+        if (msg.type === 'join') {
           players.add(msg.id); // 入室したユーザーをセットに追加
           updatePlayerCountDisplay();
           const messageList = document.querySelector('.messages');
