@@ -21,6 +21,12 @@ app.ws('/ws', (ws, req) => {
     const msg = JSON.parse(message)
     console.log('Received:', message)
 
+    //undo/redo を最初に処理
+    if (msg.type === "undo" || msg.type === "redo") {
+      broadcast(JSON.stringify(msg));
+      return;
+    }
+
     if (msg.type === 'join') {
       players.add(msg.id)
 
@@ -64,7 +70,9 @@ app.ws('/ws', (ws, req) => {
       connects.forEach((socket) => {
         if (socket.readyState === 1) {
           socket.send(JSON.stringify({
-            type: 'start', firstChar: firstChar, turnOrder: shuffledPlayers,
+            type: 'start',
+            firstChar: firstChar,
+            turnOrder: shuffledPlayers,
           }));
         }
       });
@@ -96,10 +104,7 @@ app.ws('/ws', (ws, req) => {
       return;
     }
 
-    function getRandomHiragana() {
-      const hira = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん';
-      return hira[Math.floor(Math.random() * hira.length)];
-    }
+
 
     connects.forEach((socket) => {
       if (socket.readyState === 1) {
@@ -113,6 +118,11 @@ app.ws('/ws', (ws, req) => {
     connects = connects.filter((conn) => conn !== ws)
   })
 })
+
+function getRandomHiragana() {
+  const hira = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん';
+  return hira[Math.floor(Math.random() * hira.length)];
+}
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`)
