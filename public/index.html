@@ -472,6 +472,18 @@
           console.log("保存された回答:", answers); // デバッグ用
           ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
+        if (msg.type === 'next_turn') {
+          const currentPlayer = msg.currentPlayer;
+          const turnOrder = msg.turnOrder;
+
+          const turnOrderDisplay = document.getElementById('turnOrderDisplay');
+          turnOrderDisplay.innerHTML = 'ターン順: ' + turnOrder.map(playerId => {
+            return playerId === currentPlayer
+              ? `<span style="color: red; font-weight: bold;">${playerId}</span>`
+              : `<span>${playerId}</span>`;
+          }).join(' → ');
+          turnOrderDisplay.style.display = 'inline';
+        }
 
 
         else if (msg.type === 'join') {
