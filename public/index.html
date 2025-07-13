@@ -349,9 +349,18 @@
         isAnsweringTurn = false;
         enableDrawingTools(); // 描画ツールを有効化
 
+        // ⬅️ キャンバス表示再開
+        canvas.style.display = 'block';
+        receivedCanvas.style.display = 'block';
+
+        // 待機メッセージがあれば消す
+        const msg = document.getElementById('waitingMessage');
+        if (msg) msg.remove();
+
         chatForm.style.display = 'none';
         sendPictureButton.style.display = 'block'
         chatInput.placeholder = "絵を描いて「Send Picture」を押してください"
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         receivedCtx.clearRect(0, 0, receivedCanvas.width, receivedCanvas.height);
 
@@ -388,17 +397,31 @@
         isDrawingTurn = false;
         isAnsweringTurn = false;
         disableDrawingTools();
+
         chatForm.style.display = 'none';
         sendPictureButton.style.display = 'none';
 
-        // 待機メッセージ表示
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.font = "24px sans-serif";
-        ctx.fillStyle = "gray";
-        ctx.textAlign = "center";
-        ctx.fillText(`「${currentPlayer}」が回答中です...`, canvas.width / 2, canvas.height / 2);
+        // 🟥 キャンバスを非表示にする
+        canvas.style.display = 'none';
+        receivedCanvas.style.display = 'none';
+
+        // 🟩 待機用の代替表示を canvas の代わりに表示する（必要であれば）
+        const waitingMessage = document.createElement('div');
+        waitingMessage.id = 'waitingMessage';
+        waitingMessage.style.fontSize = '24px';
+        waitingMessage.style.fontWeight = 'bold';
+        waitingMessage.style.textAlign = 'center';
+        waitingMessage.style.marginTop = '40px';
+        waitingMessage.textContent = `「${currentPlayer}」が回答中です...`;
+
+        // すでに表示されていたら消す
+        const existing = document.getElementById('waitingMessage');
+        if (existing) existing.remove();
+
+        // キャンバスの親要素に追加
+        document.querySelector('.canvases-container').appendChild(waitingMessage);
       }
+
 
       ws.onopen = () => {
         // 接続時にjoinメッセージを送る
