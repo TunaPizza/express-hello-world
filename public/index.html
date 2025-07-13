@@ -451,9 +451,12 @@
           if (msg.turnOrder) {
             console.log("ターン順:", msg.turnOrder);
             const turnOrderDisplay = document.getElementById('turnOrderDisplay');
-            turnOrderDisplay.textContent = 'ターン順: ' + msg.turnOrder.join(' → ');
+            turnOrderDisplay.innerHTML = 'ターン順: ' + msg.turnOrder.map(playerId => {
+              return playerId === msg.currentPlayer
+                ? `<span style="color: red; font-weight: bold;">${playerId}</span>`
+                : `<span>${playerId}</span>`;
+            }).join(' → ');
             turnOrderDisplay.style.display = 'inline';
-
             alert(`最初の文字: ${msg.firstChar}\nターン順: ${msg.turnOrder.join(" → ")}`);
           }
           gameStarted = true;

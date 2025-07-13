@@ -73,6 +73,7 @@ app.ws('/ws', (ws, req) => {
             type: 'start',
             firstChar: firstChar,
             turnOrder: turnOrder,
+            currentPlayer: turnOrder[0]  // 👈 追加！最初のプレイヤーも伝える
           }));
         }
       });
