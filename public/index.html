@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chat App</title>
+  <title>つなげ！　絵しりとり</title>
   <style>
     .chat {
       display: flex;
@@ -20,22 +20,31 @@
       margin: 0;
     }
 
+    /* 自分のメッセージは右寄せ(カワグチ) */
     .my-message {
       align-self: flex-end;
       margin-left: auto;
       text-align: right;
     }
 
+    /* 自分以外のメッセージは左寄せ(カワグチ) */
     .other-message {
       align-self: flex-start;
       margin-right: auto;
       text-align: left;
     }
 
+    /* 選択ボタンのスタイル */
     .number-input {
       width: 80px;
       padding: 5px;
       font-size: 16px;
+    }
+
+    /* 今の人は赤文字(カワグチ) */
+    .current-turn-player {
+      color: red;
+      font-weight: bold;
     }
 
     .form {
@@ -48,12 +57,6 @@
       border: 1px solid #ccc;
     }
 
-    .box {
-      display: flex;
-      align-items: center;
-      margin-top: 20px;
-    }
-
     .submit {
       padding: 10px;
       border: 1px solid #ccc;
@@ -61,6 +64,14 @@
       cursor: pointer;
     }
 
+    /* 横並び(オタニ追加) */
+    .box {
+      display: flex;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    /* ピッカーの見た目を変更(オタニ追加) */
     input[type="color"] {
       width: 32px;
       height: 32px;
@@ -78,6 +89,7 @@
       border-radius: 50%;
     }
 
+    /* [type="text"] コード入力エリアの見た目を変更(オタニ追加) */
     input[type="text"] {
       border: 1px solid rgb(0, 0, 0);
       padding: 5px;
@@ -87,6 +99,7 @@
       margin-left: 10px;
     }
 
+    /* 線の太さやカラーピッカーの場所を一律管理(オガワ) */
     .drawing-tools {
       display: flex;
       align-items: center;
@@ -99,6 +112,7 @@
       /* ツールを中央寄せ */
     }
 
+    /* 2つのキャンバスを横並びにするコンテナ(オガワ) */
     .canvases-container {
       display: flex;
       gap: 20px;
@@ -137,7 +151,7 @@
     </form>
   </div>
 
-  <div style=" margin-top: 20px;">
+  <div style="margin-top: 20px;">
     <label>
       ラウンド数:
       <input type="number" id="roundSelect" class="number-input" min="1" max="10" step="1" value="3">
@@ -153,66 +167,67 @@
     <span id="firstChar" style="display: none;">最初の文字は </span>
     入室人数: <span id="playerCount">0</span>人
     <br />
-    <span id="turnOrderDisplay" style="display: none;">ターン順: </span>
+    <span id="currentTurnInfo"></span><span id="turnOrderDisplay" style="display: inline;">ターン順: </span>
   </div>
 
-  <!-- ふたつのキャンバス -->
+  <div id="timerDisplay" style="font-size: 24px; font-weight: bold; margin-bottom: 10px;"></div>
+
   <div class="canvases-container">
     <canvas id="receivedCanvas" width="600" height="600"></canvas>
     <canvas id="canvas" width="600" height="600"></canvas>
   </div>
 
   <div class="drawing-tools">
-    <!-- 線の太さ -->
     <label>
       線の太さ:
       <input type="range" id="lineWidthSlider" min="1" max="20" value="5">
     </label>
-    <!-- カラーピッカー -->
     <input type="color" id="colorPicker" value="#000000">
-    <!-- 消しゴム -->
     <button id="eraserToggle">消しゴム OFF</button>
+    <button id="undoBtn">↩</button>
+    <button id="redoBtn">↪</button>
 
-    <!-- sendPictureボタン追加 -->
     <button id="sendPictureButton">Send Picture</button>
 
   </div>
 
-
-  <!-- <canvas id="canvas" width="600" height="600" style="border: solid 1px black; display: none;"></canvas> -->
-
   <script>
     function main() {
+      // myIdを自分で入力するように変更(入力なしならランダム)(カワグチ)
       const myId = prompt("ユーザー名を入力してください")?.trim() || self.crypto.randomUUID().substr(0, 8);
       const host = location.origin.replace(/^http/, 'ws')
       const ws = new WebSocket(host + '/ws')
 
-      let players = new Set();
+      //入室しているユーザー管理(重複を許さない)(カワグチ)
+      let players = new Set()
 
-      //ゲーム開始状態を管理
+      //ゲーム開始状態を管理(オガワ)
       let gameStarted = false;
-      //回答を保存する配列
+      //回答を保存する配列(オガワ)
       let answers = [];
-      //描かれた画像を保存する配列
+      //描かれた画像を保存する配列(オガワ)
       let drawnImages = [];
-      //一時的に描かれた画像を保持する
+      //一時的に描かれた画像を保持する(オガワ)
       let currentDrawingData = null;
 
+      //書いた情報を保管する(オタニ追加)
+      let currentRemoteStroke = [];
 
-      const startButton = document.getElementById('startButton');
-      const chatArea = document.querySelector('.chat');
+      //ボタンとチャットしている場所の管理(カワグチ)
+      const startButton = document.getElementById('startButton')
+      const chatArea = document.querySelector('.chat')
 
-      //チャット入力欄と、sendボタン、画像sendボタン
+      //チャット入力欄と、sendボタン、画像sendボタン(オガワ)
       const chatInput = document.getElementById('chatInput'); // chatInputのIDを追加
       const chatSubmitButton = document.getElementById('chatSubmitButton'); // chatSubmitButtonのIDを追加
       const sendPictureButton = document.getElementById('sendPictureButton'); // 新しいボタンを取得
       const drawingToolsContainer = document.querySelector('.drawing-tools');
 
-      //描画モードか、回答入力モードか
-      let isDrawingTurn = false; //絵を描くターンかどうか
-      let isAnsweringTurn = false; //回答入力ターンかどうか
+      // 描画モードか、回答入力モードかではなく、現在のユーザーが「描く番」か「回答する番」かを明確にする
+      let isMyDrawingTurn = false;
+      let isMyAnsweringTurn = false;
 
-      // 入室人数表示を更新する関数
+      // 現在の入室人数を表示をする関数(カワグチ)
       function updatePlayerCountDisplay() {
         const playerCountElement = document.getElementById('playerCount');
         if (playerCountElement) {
@@ -220,30 +235,34 @@
         }
       }
 
-      // ゲーム開始ボタンイベント
+      // ゲーム開始ボタンが押されたら(カワグチ)
       startButton.onclick = () => {
-        const round = document.getElementById('roundSelect').value;
-        const turn = document.getElementById('turnSelect').value;
-        const playerCount = players.size;
+        const round = document.getElementById('roundSelect').value
+        const turn = document.getElementById('turnSelect').value
+        const playerCount = players.size
 
         const confirmed = confirm(
           `入室人数: ${playerCount}人\nラウンド数: ${round}ラウンド\nターン数: ${turn}ターン\n\nゲームを開始しますか？`
-        );
+        )
 
         if (confirmed) {
-          ws.send(JSON.stringify({ type: 'start' }));
-          gameStarted = true;
-          setDrawingTurnUI();
-
+          ws.send(JSON.stringify({ type: 'start' }))
+          gameStarted = true; //ゲーム開始状態にする
+          // UIの切り替えはサーバーからの 'start' メッセージを待ちます
         }
-      };
+      }
 
+      //過去に書いたものを入れる配列(オタニ追加)
+      let drawingHistory = [];
+      let undoneHistory = [];
 
+      //2つのキャンバスとコンテキストを取得(オガワ)
       const receivedCanvas = document.getElementById('receivedCanvas');
       const receivedCtx = receivedCanvas.getContext('2d');
       const canvas = document.getElementById('canvas')
       const ctx = canvas.getContext('2d')
 
+      //ColorPickerの色、線の太さ、消しゴムをcanvasに反映させる(オタニ追加)
       const colorPicker = document.getElementById('colorPicker');
       const lineWidthSlider = document.getElementById('lineWidthSlider');
       const eraserToggle = document.getElementById('eraserToggle');
@@ -260,10 +279,10 @@
         ctx.lineWidth = lineWidthSlider.value;
       });
 
-
-      let drawing = false
+      let drawing = false;
       let eraserMode = false;
 
+      //トグル(オタニ追加)
       eraserToggle.addEventListener('click', () => {
         eraserMode = !eraserMode;
         eraserToggle.textContent = eraserMode ? "消しゴム ON" : "消しゴム OFF";
@@ -274,12 +293,29 @@
         }
       });
 
+      //redo/undoボタン追加(オタニ追加)
+      const undoBtn = document.getElementById('undoBtn');
+      const redoBtn = document.getElementById('redoBtn');
+
+      //undoボタンクリックでWebSocketに送信(オタニ追加)
+      undoBtn.addEventListener('click', () => {
+        ws.send(JSON.stringify({ type: 'undo' }));
+      });
+
+      //redoボタンクリックでWebSocketに送信(オタニ追加)
+      redoBtn.addEventListener('click', () => {
+        ws.send(JSON.stringify({ type: 'redo' }));
+      });
+
+      //現在描画している線の座標を一時的に保存するための配列(オタニ追加)
+      let currentStroke = [];
+
       canvas.addEventListener('mousedown', (e) => {
-        sendDrawingEvent(e.offsetX, e.offsetY, 'mousedown')
-      })
+        sendDrawingEvent(e.offsetX, e.offsetY, 'mousedown');
+      });
       function mousedown() {
-        drawing = true
-        ctx.beginPath()
+        drawing = true;
+        ctx.beginPath();
       }
 
       canvas.addEventListener('mousemove', (e) => {
@@ -296,9 +332,20 @@
       canvas.addEventListener('mouseup', (e) => {
         sendDrawingEvent(e.offsetX, e.offsetY, 'mouseup')
       })
+      //mouseup時にcurrentStrokeを初期化(オタニ追加)
       function mouseup() {
         drawing = false
         ctx.beginPath()
+        if (currentStroke.length > 0) {
+          // 現在のストロークを保存
+          drawingHistory.push({
+            stroke: [...currentStroke], // スプレッド演算子でコピー
+            color: ctx.strokeStyle,
+            width: ctx.lineWidth
+          });
+          currentStroke = []; // 次のストロークに備えてリセット
+          undoneHistory = []; // 新しい描画があったのでredo履歴をクリア
+        }
       }
 
       canvas.addEventListener('mouseout', (e) => {
@@ -308,20 +355,46 @@
         drawing = false
       }
 
+      //draw関数をundo/redoのために変更(オタニ追加)
       function draw(x, y, dragging) {
         if (dragging) {
-          ctx.lineTo(x, y)
-          ctx.stroke()
+          ctx.lineTo(x, y);
+          ctx.stroke();
+          currentStroke.push({ x, y });
         } else {
-          ctx.moveTo(x, y)
+          ctx.moveTo(x, y);
+          currentStroke.push({ x, y });
         }
       }
 
+      //canvasを再描画する際に必要(オタニ追加)
+      function redraw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let item of drawingHistory) {
+          ctx.strokeStyle = item.color;
+          ctx.lineWidth = item.width;
+          ctx.beginPath();
+          const points = item.stroke;
+          for (let i = 0; i < points.length; i++) {
+            const p = points[i];
+            if (i === 0) {
+              ctx.moveTo(p.x, p.y);
+            } else {
+              ctx.lineTo(p.x, p.y);
+            }
+          }
+          ctx.stroke();
+        }
+      }
+
+      // 描画ツール（Canvas, ColorPicker, LineWidthSlider）の有効/無効を切り替える(オガワ)
       function enableDrawingTools() {
         canvas.style.pointerEvents = 'auto'; // 描画可能に
         colorPicker.disabled = false;
         lineWidthSlider.disabled = false;
         eraserToggle.disabled = false; // 消しゴムも有効に
+        undoBtn.disabled = false; //undoも有効に(オタニ追加)
+        redoBtn.disabled = false; //redoも有効に(オタニ追加)
         drawingToolsContainer.style.display = 'flex'; // 描画ツール全体を表示
       }
 
@@ -330,123 +403,183 @@
         colorPicker.disabled = true;
         lineWidthSlider.disabled = true;
         eraserToggle.disabled = true; // 消しゴムも無効に
+        undoBtn.disabled = true; //undoも無効に(オタニ追加)
+        redoBtn.disabled = true; //redoも無効に(オタニ追加)
         drawing = false; // 描画中フラグをオフにする
         drawingToolsContainer.style.display = 'none'; // 描画ツール全体を非表示
       }
 
+      //送信するメッセージに color, width, eraser を追加(オタニ追加)
       function sendDrawingEvent(x, y, control) {
         const message = JSON.stringify({
-          x, y, control, color: eraserMode ? "#ffffff" : colorPicker.value,
+          x,
+          y,
+          control,
+          color: eraserMode ? "#ffffff" : colorPicker.value,
           width: lineWidthSlider.value,
           eraser: eraserMode,
           type: 'paint'
-        })
-        ws.send(message)
+        });
+        ws.send(message);
       }
 
-      function setDrawingTurnUI() {
-        isDrawingTurn = true;
-        isAnsweringTurn = false;
-        enableDrawingTools(); // 描画ツールを有効化
+      //制限時間を設けるための処理(オガワ)
+      let countdownInterval; //タイマーIDを保持する関数
 
-        // ⬅️ キャンバス表示再開
-        canvas.style.display = 'block';
-        receivedCanvas.style.display = 'block';
+      function startTimer(duration, onTimeout) {
+        let timer = duration;
+        const timerDisplay = document.getElementById('timerDisplay');
+        clearInterval(countdownInterval); // 既存のタイマーがあればクリア
 
-        // 待機メッセージがあれば消す
-        const msg = document.getElementById('waitingMessage');
-        if (msg) msg.remove();
+        countdownInterval = setInterval(() => {
+          timerDisplay.textContent = `残り時間: ${timer}秒`;
+          if (timer <= 0) {
+            clearInterval(countdownInterval);
+            onTimeout(); //時間切れの処理
+          }
+          timer--;
+        }, 1000);
+      }
 
-        chatForm.style.display = 'none';
-        sendPictureButton.style.display = 'block'
-        chatInput.placeholder = "絵を描いて「Send Picture」を押してください"
+      // --- 自分の描画ターンUIに設定する関数 ---
+      function setMyDrawingTurnUI(drawingTime) {
+        isMyDrawingTurn = true;
+        isMyAnsweringTurn = false;
 
+        enableDrawingTools(); // 描画ツールを有効にする
+        sendPictureButton.style.display = 'block'; // 「Send Picture」ボタンを表示
+
+        chatForm.style.display = 'none'; // チャット入力を非表示
+        chatInput.placeholder = "絵を描いて「Send Picture」を押してください";
+
+        // キャンバスをクリアして新しい絵を描けるようにする
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         receivedCtx.clearRect(0, 0, receivedCanvas.width, receivedCanvas.height);
+        drawingHistory = []; // 描画履歴もクリア
+        undoneHistory = [];
 
+        // 描画時間のタイマーを開始
+        startTimer(drawingTime, () => {
+          alert("描画ターン時間切れ！");
+          ws.send(JSON.stringify({ type: 'drawing_time_up' })); // サーバーに時間切れを伝える
+          // ここではまだUIを切り替えません。サーバーからの次のターン指示を待ちます。
+          disableDrawingTools(); // 時間切れなので描画ツールは使えなくする
+        });
       }
 
-      function setAnsweringTurnUI() {
-        isDrawingTurn = false;
-        isAnsweringTurn = true;
-        disableDrawingTools(); // 描画ツールを無効化
+      // --- 自分の回答ターンUIに設定する関数 ---
+      function setMyAnsweringTurnUI(answeringTime) {
+        isMyDrawingTurn = false;
+        isMyAnsweringTurn = true;
 
-        chatForm.style.display = 'flex';
-        sendPictureButton.style.display = 'none';
+        disableDrawingTools(); // 描画ツールは無効にする
+        sendPictureButton.style.display = 'none'; // 「Send Picture」ボタンを非表示
+
+        chatForm.style.display = 'flex'; // チャット入力を表示
         chatInput.placeholder = "何を描いたか”ひらがなで”入力してください";
-        chatInput.value = '';
-        chatInput.focus();
+        chatInput.value = ''; // 入力欄をクリア
+        chatInput.focus(); // 入力欄にフォーカス
+        enableChatInput(); // チャット入力を有効にする
+
+        // 回答時間のタイマーを開始
+        startTimer(answeringTime, () => {
+          alert("回答ターン時間切れ！");
+          ws.send(JSON.stringify({ type: 'answering_time_up' })); // サーバーに時間切れを伝える
+          // ここではまだUIを切り替えません。サーバーからの次のターン指示を待ちます。
+          disableChatInput(); // 時間切れなのでチャット入力は使えなくする
+        });
       }
 
-      function setChatModeUI() {
-        isDrawingTurn = false;
-        isAnsweringTurn = false;
+      // --- 他の人のターンまたはゲーム待機中のチャットモードUIに設定する関数 ---
+      function setOtherTurnOrChatModeUI() {
+        isMyDrawingTurn = false;
+        isMyAnsweringTurn = false;
 
-        chatForm.style.display = 'flex';
-        sendPictureButton.style.display = 'none';
+        clearInterval(countdownInterval); // タイマーを停止
+        document.getElementById('timerDisplay').textContent = ''; // タイマー表示をクリア
+
+        chatForm.style.display = 'flex'; // チャット入力を表示
+        sendPictureButton.style.display = 'none'; // 「Send Picture」ボタンを非表示
+        disableDrawingTools(); // 描画ツールは使えないようにする（非表示にもなる）
+
         chatInput.placeholder = "チャットメッセージを入力";
         chatInput.value = '';
-        chatInput.focus();
+        enableChatInput(); // チャット入力を有効にする（一般的なチャットのため）
 
-        // 初期化時にキャンバスをクリア
-        ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-        receivedCtx.clearRect(0, 0, receivedCanvas.width, receivedCanvas.height);
+        // 他の人の絵が表示されているreceivedCanvasはクリアしません
+        // 自分の絵を描くcanvasは、描画ターンではないのでクリアは不要です。
       }
 
-      function showWaitingScreen(currentPlayer) {
-        isDrawingTurn = false;
-        isAnsweringTurn = false;
-        disableDrawingTools();
-
-        chatForm.style.display = 'none';
-        sendPictureButton.style.display = 'none';
-
-        // 🟥 キャンバスを非表示にする
-        canvas.style.display = 'none';
-        receivedCanvas.style.display = 'none';
-
-        // 🟩 待機用の代替表示を canvas の代わりに表示する（必要であれば）
-        const waitingMessage = document.createElement('div');
-        waitingMessage.id = 'waitingMessage';
-        waitingMessage.style.fontSize = '24px';
-        waitingMessage.style.fontWeight = 'bold';
-        waitingMessage.style.textAlign = 'center';
-        waitingMessage.style.marginTop = '40px';
-        waitingMessage.textContent = `「${currentPlayer}」が回答中です...`;
-
-        // すでに表示されていたら消す
-        const existing = document.getElementById('waitingMessage');
-        if (existing) existing.remove();
-
-        // キャンバスの親要素に追加
-        document.querySelector('.canvases-container').appendChild(waitingMessage);
+      // チャット入力の有効/無効を切り替える関数(オガワ)
+      function disableChatInput() {
+        chatInput.disabled = true;
+        chatSubmitButton.disabled = true;
       }
 
+      function enableChatInput() {
+        chatInput.disabled = false;
+        chatSubmitButton.disabled = false;
+      }
 
+      // 接続時に参加したことえお知らせる(カワグチ)
       ws.onopen = () => {
-        // 接続時にjoinメッセージを送る
-        ws.send(JSON.stringify({ type: 'join', id: myId }));
+        ws.send(JSON.stringify({ type: 'join', id: myId }))
+        setOtherTurnOrChatModeUI(); // ゲーム開始前の待機状態に設定
       };
 
+      //受信側に color, width, eraser　を追加(オタニ追加)
       ws.onmessage = (event) => {
-        const msg = JSON.parse(event.data)
+        const msg = JSON.parse(event.data);
+        console.log('Received message:', msg.type, msg); // デバッグ用に受信メッセージをログ出力
+
         if (msg.type === 'paint') {
-          const { x, y, control, color, width } = msg
-          console.log({ control })
-          if (color) ctx.strokeStyle = color;
-          if (width) ctx.lineWidth = parseFloat(width);
+          const { x, y, control, color, width } = msg;
+
+          ctx.strokeStyle = color || "#000000";
+          ctx.lineWidth = parseFloat(width) || 1;
 
           if (control === 'mousedown') {
-            mousedown()
-          } else if (control === 'mouseup') {
-            mouseup()
+            mousedown();
+            currentRemoteStroke = [{ x, y }];
           } else if (control === 'mousemove') {
-            mousemove(x, y)
+            mousemove(x, y);
+            currentRemoteStroke.push({ x, y });
+          } else if (control === 'mouseup') {
+            mouseup();
+            drawingHistory.push({
+              stroke: [...currentRemoteStroke],
+              color: ctx.strokeStyle,
+              width: ctx.lineWidth
+            });
+            undoneHistory = [];
+            currentRemoteStroke = [];
           } else if (control === 'mouseout') {
-            mouseout()
+            mouseout();
           }
+          return;
         }
 
+        //undo処理(オタニ追加)
+        if (msg.type === 'undo') {
+          if (drawingHistory.length > 0) {
+            const lastStroke = drawingHistory.pop();
+            undoneHistory.push(lastStroke);
+            redraw();
+          }
+          return;
+        }
+
+        // Redo処理(オタニ追加)
+        if (msg.type === 'redo') {
+          if (undoneHistory.length > 0) {
+            const restored = undoneHistory.pop();
+            drawingHistory.push(restored);
+            redraw();
+          }
+          return;
+        }
+
+        //画像データを受信したらcanvasに表示(オガワ)
         if (msg.type === 'image_sended') {
           const img = new Image();
           img.onload = function () {
@@ -454,153 +587,214 @@
             receivedCtx.drawImage(img, 0, 0);
           };
           img.src = msg.imageData;
-        }
-
-        if (msg.type === 'players') {
-          players = new Set(msg.players);
-          updatePlayerCountDisplay();
+          // 画像が送られても、クライアントはUIを切り替えません。
+          // サーバーからの `next_turn` メッセージを待ちます。
           return;
         }
 
+
+        //プレイヤー情報が送られてきたら(カワグチ)
+        if (msg.type === 'players') {
+          players = new Set(msg.players)
+          //入室人数の更新
+          updatePlayerCountDisplay()
+          return
+        }
+
+        // --- 新しく追加する init メッセージハンドラ ---
+        // (これはゲームに再接続したときなどに、現在のゲーム状態をサーバーから受け取るためのもの)
+        if (msg.type === 'init') {
+          players = new Set(msg.players);
+          updatePlayerCountDisplay();
+          // サーバーからチャット履歴が送られてきた場合
+          if (msg.chatHistory) {
+            msg.chatHistory.forEach(chat => appendMessage(chat.id, chat.text, myId));
+          }
+          // もしサーバーが現在のターン情報を送ってきたら、それに基づいてUIを設定
+          if (msg.currentTurn && msg.turnOrder) {
+            updateTurnDisplay(msg.currentTurn, msg.turnOrder, msg.round);
+            if (msg.currentTurn === myId) {
+              setMyDrawingTurnUI(60); // 描画時間
+            } else {
+              setOtherTurnOrChatModeUI(); // 他のプレイヤーのターンまたはチャットモード
+            }
+          } else {
+            setOtherTurnOrChatModeUI(); // ゲーム未開始、待機/チャットモード
+          }
+          return;
+        }
+
+
+        //スタートボタンが押されたら(カワグチ)
         if (msg.type === 'start') {
-          // 全員が受け取るとここが動くので画面切り替え
-          chatArea.style.display = 'block';
-          canvas.style.display = 'block';
+          console.log("受け取ったturnOrder:", msg.turnOrder);
+          //画面切り替え(チャット画面、ターン・ラウンド選択ボタンを消す)(カワグチ)
+          chatArea.style.display = 'block'
+          canvas.style.display = 'block'
           chatInput.style.display = 'block'
 
-          document.getElementById('roundSelect').parentElement.style.display = 'none';
-          document.getElementById('turnSelect').parentElement.style.display = 'none';
-          document.getElementById('startButton').style.display = 'none';
+          document.getElementById('roundSelect').parentElement.style.display = 'none'
+          document.getElementById('turnSelect').parentElement.style.display = 'none'
+          document.getElementById('startButton').style.display = 'none'
 
           const firstCharEl = document.getElementById('firstChar');
           firstCharEl.textContent = '最初の文字: ' + msg.firstChar;
           firstCharEl.style.display = 'inline';
 
+          // updateTurnDisplay 関数を呼び出す
+          updateTurnDisplay(msg.currentTurn, msg.turnOrder, msg.round);
 
-          // 最初の文字をここで更新
-          if (msg.firstChar) {
-            console.log("最初の文字:", msg.firstChar);
-            const firstCharEl = document.getElementById('firstChar');
-            firstCharEl.textContent = '最初の文字: ' + msg.firstChar;
-            firstCharEl.style.display = 'inline';
-          }
+          alert(`最初の文字: ${msg.firstChar}\nターン順: ${msg.turnOrder.join(" → ")}`);
 
-          // ターン順を表示または保持
-          if (msg.turnOrder) {
-            console.log("ターン順:", msg.turnOrder);
-            const turnOrderDisplay = document.getElementById('turnOrderDisplay');
-            turnOrderDisplay.innerHTML = 'ターン順: ' + msg.turnOrder.map(playerId => {
-              return playerId === msg.currentPlayer
-                ? `<span style="color: red; font-weight: bold;">${playerId}</span>`
-                : `<span>${playerId}</span>`;
-            }).join(' → ');
-            turnOrderDisplay.style.display = 'inline';
-            alert(`最初の文字: ${msg.firstChar}\nターン順: ${msg.turnOrder.join(" → ")}`);
+          gameStarted = true; //ゲーム開始状態にする
+          // サーバーからの指示に基づいてUIを切り替える
+          if (msg.currentTurn === myId) {
+            setMyDrawingTurnUI(60); // 自分のターンなら描画UI
+          } else {
+            setOtherTurnOrChatModeUI(); // 他の人のターンなら待機/チャットUI
           }
-          gameStarted = true;
-          setDrawingTurnUI();
+          return;
+        }
+
+        // --- 'next_turn' メッセージハンドラの修正 ---
+        if (msg.type === 'next_turn') {
+          const currentTurn = msg.currentTurn;
+          const turnOrder = msg.turnOrder;
+          const round = msg.round;
+
+          // updateTurnDisplay 関数を呼び出す
+          updateTurnDisplay(currentTurn, turnOrder, round);
+
+          // 必要に応じてUI切り替えもここで実行
+          if (currentTurn === myId) {
+            // 自分のターンになった場合
+            // もし直前の行動が「自分が絵を描き終えた」なら、次は「回答ターン」
+            if (msg.lastActionType === 'drawing_finished' && msg.lastActionPlayerId === myId) {
+              setMyAnsweringTurnUI(30); // 回答時間
+            } else {
+              // それ以外（通常は次の描画ターン）
+              setMyDrawingTurnUI(60); // 描画時間
+            }
+          } else {
+            // 他の人のターンならチャットモードなどにする
+            setOtherTurnOrChatModeUI();
+          }
+          return;
+        }
+
+        //メッセージ送ったときのテンプレート関数(カワグチ)
+        function appendMessage(id, text, myId) {
+          const messageList = document.querySelector('.messages')
+          const li = document.createElement('li')
+          li.textContent = id + ': ' + text
+          if (id === myId) {
+            li.className = 'my-message'
+          } else {
+            li.className = 'other-message'
+          }
+          messageList.appendChild(li)
+          messageList.scrollTop = messageList.scrollHeight; // スクロールを一番下へ
         }
 
         if (msg.type === 'chat') {
-          const { id, text } = msg
-          appendMessage(msg.id, msg.text, myId);
+          appendMessage(msg.id, msg.text, myId)
         }
 
+        //回答が送られたら、チャットには表示せず回答リストに保存(オガワ)
         if (msg.type === 'answer') {
           const { id, text } = msg;
-
           answers.push({ id, text });
           console.log("保存された回答:", answers); // デバッグ用
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          appendMessage(id, `が「${text}」と回答しました。`, myId); // 回答もチャットに表示
+          // キャンバスのクリアは、次の描画ターンが始まったときに setMyDrawingTurnUI 内で行われます。
         }
 
-        if (msg.type === 'next_turn') {
-          const currentPlayer = msg.currentPlayer;
-          const turnOrder = msg.turnOrder;
-
-          const turnOrderDisplay = document.getElementById('turnOrderDisplay');
-          turnOrderDisplay.innerHTML = 'ターン順: ' + turnOrder.map(playerId => {
-            return playerId === currentPlayer
-              ? `<span style="color: red; font-weight: bold;">${playerId}</span>`
-              : `<span>${playerId}</span>`;
-          }).join(' → ');
-          turnOrderDisplay.style.display = 'inline';
-          if (currentPlayer === myId) {
-            // 自分のターン（回答する）
-            setAnsweringTurnUI();
-          } else {
-            // 他のプレイヤーは待機画面
-            showWaitingScreen(currentPlayer);
-          }
-        }
-
-
-
+        //入室したら(カワグチ)
         if (msg.type === 'join') {
-          players.add(msg.id); // 入室したユーザーをセットに追加
-          updatePlayerCountDisplay();
-          const messageList = document.querySelector('.messages');
-          const li = document.createElement('li');
-          li.textContent = msg.id + 'が入室しました '
-          messageList.appendChild(li);
+          // 入室したユーザーをセットに追加(カワグチ)
+          players.add(msg.id)
+          //入室人数の更新(カワグチ)
+          updatePlayerCountDisplay()
+          appendMessage(msg.id, 'が入室しました', myId); // 参加メッセージをチャットに表示
         }
-      }
-
-      function appendMessage(id, text, myId) {
-        const messageList = document.querySelector('.messages');
-        const li = document.createElement('li');
-        if (id === myId) {
-          li.className = 'my-message';
-          li.textContent = id + ': ' + text
-        } else {
-          li.className = 'other-message';
-          li.textContent = id + ': ' + text
-        }
-        messageList.appendChild(li);
       }
 
       const chatForm = document.querySelector('.form')
 
-
-
+      //ゲーム開始前の処理(オガワ)
       chatForm.onsubmit = function (e) {
-        e.preventDefault()
-        const input = document.querySelector('.input')
-        const text = input.value
+        e.preventDefault();
+        const input = document.querySelector('.input');
+        const text = input.value.trim(); // 前後の空白を削除
+
+        if (text === '') return; // 空のメッセージは送信しない
 
         if (!gameStarted) {
-          if (text !== '') { // 空のメッセージは送信しない
-            ws.send(JSON.stringify({ id: myId, text: text, type: 'chat' }));
-          }
-          input.value = ''
-          input.focus()
-          return;
+          // ゲーム開始前のチャット
+          ws.send(JSON.stringify({ id: myId, text: text, type: 'chat' }));
         }
+        else if (isMyAnsweringTurn) {
+          // 自分の回答ターン
+          ws.send(JSON.stringify({ id: myId, text: text, type: 'answer' }));
+          console.log('sending turn_end from answering turn');
+          ws.send(JSON.stringify({ type: 'turn_end' })); // サーバーに回答が終わったことを通知
+          disableChatInput(); // 回答を送ったらチャット入力は使えなくする
 
-        if (isAnsweringTurn) {
-          if (text !== '') {
-            ws.send(JSON.stringify({ id: myId, text: text, type: 'answer' }));
-            answers.push({ id: myId, text: text });
-            input.value = ''
-            input.focus()
-          }
-          //回答送信後次の人の絵のターンへ
-          setDrawingTurnUI();
+          // ここではUIを切り替えません。サーバーからの次のターン指示を待ちます。
+        } else {
+          // ゲーム中の一般的なチャット（自分のターン以外）
+          ws.send(JSON.stringify({ id: myId, text: text, type: 'chat' }));
         }
-
-      }
+        input.value = ''; // 入力フィールドをクリア
+      };
 
       sendPictureButton.onclick = () => {
-        if (gameStarted && isDrawingTurn) {
-          currentDrawingData = canvas.toDataURL('image/png');
-          drawnImages.push(currentDrawingData);
-          console.log("保存された画像:" + drawnImages)
+        if (!isMyDrawingTurn) return; // 自分の描画ターンでなければ何もしない
 
-          // 描かれた画像をサーバーに送信
-          ws.send(JSON.stringify({ type: 'image_sended', imageData: currentDrawingData }));
+        const imageData = canvas.toDataURL('image/png');
+        ws.send(JSON.stringify({ type: 'image_sended', imageData: imageData }));
+        alert("絵を送信しました！");
+        // ここではUIを切り替えません。サーバーからの次のターン指示を待ちます。
+        disableDrawingTools(); // 絵を送ったら描画ツールは使えなくする
+      };
 
-          setAnsweringTurnUI();
+      // --- 新しい updateTurnDisplay 関数 ---
+      function updateTurnDisplay(currentTurn, turnOrder, round) {
+        const turnOrderDisplayElement = document.getElementById('turnOrderDisplay');
+        const currentTurnInfoElement = document.getElementById('currentTurnInfo');
+
+        // 現在のラウンド情報を表示
+        if (currentTurnInfoElement) {
+          currentTurnInfoElement.textContent = `現在のラウンド: ${round} / `;
         }
+
+        // 古いターン表示を完全にクリアする
+        while (turnOrderDisplayElement.firstChild) {
+          turnOrderDisplayElement.removeChild(turnOrderDisplayElement.firstChild);
+        }
+
+        // 「ターン順: 」というテキストを追加
+        const turnOrderLabel = document.createTextNode('ターン順: ');
+        turnOrderDisplayElement.appendChild(turnOrderLabel);
+
+        // 各プレイヤー名を span タグで生成し、現在のターンプレイヤーには赤文字のクラスを付ける
+        turnOrder.forEach((playerId, index) => {
+          const span = document.createElement('span');
+          span.textContent = playerId;
+
+          // 現在のターンプレイヤーなら赤文字のCSSクラスを追加
+          if (playerId === currentTurn) {
+            span.classList.add('current-turn-player'); // CSSで定義したクラス名
+          }
+
+          turnOrderDisplayElement.appendChild(span);
+
+          // 最後のプレイヤーでなければ「 → 」を追加
+          if (index < turnOrder.length - 1) {
+            const arrow = document.createTextNode(' → ');
+            turnOrderDisplayElement.appendChild(arrow);
+          }
+        });
       }
 
       ws.onerror = function (error) {
