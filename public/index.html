@@ -425,7 +425,11 @@
         sendPictureButton.style.display = 'block'
         chatInput.placeholder = "絵を描いて「Send Picture」を押してください"
         ctx.clearRect(0, 0, canvas.width, canvas.height); // 自分のキャンバスをクリア
-        // receivedCtx.clearRect(0, 0, receivedCanvas.width, receivedCanvas.height); // 描画ターンでは前の絵を残しておく
+        // ここにreceivedCanvasをクリアする処理を追加
+        receivedCtx.clearRect(0, 0, receivedCanvas.width, receivedCanvas.height); // 左側のキャンバスもクリア
+        drawingHistory = []; // 描画履歴もクリアして新しい描画に備える
+        undoneHistory = []; // UNDO履歴もクリア
+
 
         startTimer(60, () => {
           alert("描画ターン時間切れ！");
@@ -444,9 +448,6 @@
         chatInput.placeholder = "何を描いたか”ひらがなで”入力してください";
         chatInput.value = '';
         chatInput.focus();
-
-        // 回答ターンではreceivedCanvasはクリアしない（前の絵が残るように）
-        // ctx.clearRect(0, 0, canvas.width, canvas.height); // 描画が終わった自分のキャンバスはクリアする
 
         startTimer(30, () => {
           alert("回答ターン時間切れ！");
@@ -480,8 +481,6 @@
 
         enableChatInput();
 
-        // 自分のターンではない時（チャットモード）は、描画キャンバスをクリアし、
-        // receivedCanvasは次の人の絵が表示される準備をする
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         receivedCtx.clearRect(0, 0, receivedCanvas.width, receivedCanvas.height); // 他の人の描画を見るためにクリア
       }
@@ -495,8 +494,7 @@
         if (msg.type === 'paint') {
           const { x, y, control, color, width } = msg;
 
-          // 自分の描画ターンでない場合は、描画データをreceivedCanvasに反映
-          if (!isDrawingTurn) {
+          if (!isDrawingTurn) { // 自分の描画ターンでない場合（他の人が描いている場合）
             receivedCtx.strokeStyle = color || "#000000";
             receivedCtx.lineWidth = parseFloat(width) || 1;
 
@@ -509,8 +507,7 @@
             } else if (control === 'mouseup') {
               receivedCtx.beginPath(); // 次の描画に備えてパスを閉じる
             }
-          } else {
-            // 自分の描画ターンならcanvasに反映 (これは元々のロジック)
+          } else { // 自分の描画ターンならcanvasに反映 (これは元々のロジック)
             ctx.strokeStyle = color || "#000000";
             ctx.lineWidth = parseFloat(width) || 1;
 
@@ -553,15 +550,13 @@
           return;
         }
 
-        // ここが重要：画像データを受信したらreceivedCanvasに表示(オガワ)
         if (msg.type === 'image_sended') {
           const img = new Image();
           img.onload = function () {
-            // receivedCtx.clearRect(0, 0, receivedCanvas.width, receivedCanvas.height); // 前の画像をクリア
-            receivedCtx.drawImage(img, 0, 0, receivedCanvas.width, receivedCanvas.height); // receivedCanvasのサイズに合わせて描画
+            receivedCtx.drawImage(img, 0, 0, receivedCanvas.width, receivedCanvas.height);
           };
           img.src = msg.imageData;
-          return; // 画像表示後に他の処理に移らないようにreturn
+          return;
         }
 
         if (msg.type === 'players') {
@@ -599,11 +594,10 @@
           alert(`最初の文字: ${msg.firstChar}\nターン順: ${msg.turnOrder.join(" → ")}`);
 
           gameStarted = true;
-          // サーバーからのstartメッセージ受信時に最初のターンプレイヤーを設定
           if (currentTurn === myId) {
             setDrawingTurnUI();
           } else {
-            setChatModeUI(); // 最初の人が描く間、他の人はチャットモード
+            setChatModeUI();
           }
         }
 
@@ -617,11 +611,10 @@
           }).join(' → ');
           turnOrderDisplay.style.display = 'inline';
 
-          // 次のターンプレイヤーが自分かどうかでUIを切り替える
           if (currentTurn === myId) {
-            setDrawingTurnUI(); // 自分のターンなら描画UI
+            setDrawingTurnUI();
           } else {
-            setChatModeUI(); // 他の人のターンならチャットUI（絵が見える状態）
+            setChatModeUI();
           }
         }
 
@@ -647,7 +640,6 @@
           const { id, text } = msg;
           answers.push({ id, text });
           console.log("保存された回答:", answers);
-          // ctx.clearRect(0, 0, canvas.width, canvas.height); // 回答が送られても自分のキャンバスは残しておく
         }
 
         if (msg.type === 'join') {
@@ -687,7 +679,7 @@
             console.log('sending turn_end');
             ws.send(JSON.stringify({ type: 'turn_end' }));
           }
-        } else if (!isDrawingTurn) { // 描画ターンでも回答ターンでもない場合はチャットとして送信
+        } else if (!isDrawingTurn) {
           if (text !== '') {
             ws.send(JSON.stringify({ id: myId, text: text, type: 'chat' }));
           }
@@ -704,7 +696,6 @@
 
           ws.send(JSON.stringify({ type: 'image_sended', imageData: currentDrawingData }));
 
-          // 描画後、回答ターンへ移行
           setAnsweringTurnUI();
           ws.send(JSON.stringify({ type: 'drawing_completed' }));
         }
