@@ -216,8 +216,8 @@
 
   <!-- ルームの状況(カワグチ) -->
   <div id="gameStatus" style="font-size: 20px; font-weight: bold; margin: 10px 0;">
-    <span id="firstChar"">最初の文字は </span>
-    <span id=" playerCountDisplay">入室人数：</span>人
+    <span id="firstChar">最初の文字は </span>
+    <span id="playerCountDisplay"></span>
     <br />
     <!-- 誰のターンか(カワグチ) -->
     <span id="currentTurnInfo"></span><span id="turnOrderDisplay" style="display: inline;"></span>
@@ -233,7 +233,7 @@
     <div class="canvases-container">
       <canvas id="receivedCanvas" width="600" height="600"></canvas>
       <canvas id="canvas" width="600" height="600"></canvas>
-      <!-- コンソールガイド用キャンバス(オタニ追加) -->>
+      <!-- コンソールガイド用キャンバス(オタニ追加) -->
       <canvas id="cursorCanvas" width="600" height="600" style="position: absolute; pointer-events: none;"></canvas>
     </div>
 
@@ -306,18 +306,29 @@
       // --- 初期設定(カワグチ) ---
       function initializeUI() {
         // ゲーム開始前は、ゲームコントロールとチャットフォームのみ表示
-        gameControls.classList.remove('hidden');
-        chatForm.classList.remove('hidden');
-        canvasesContainer.classList.remove('hidden');
-        drawingToolsContainer.classList.remove('hidden');
-        sendPictureButton.classList.add('hidden');
-        standbyMessageElement.classList.add('hidden');
-        timerDisplay.classList.add('hidden');
-        firstCharEl.classList.add('hidden');
-        turnOrderDisplay.classList.remove('hidden'); // プレイヤー数とターン順は常に表示
+        gameControls.classList.remove('hidden'); // ゲーム開始設定を表示
+        chatForm.classList.remove('hidden'); // チャットフォームを表示
+        playerCountDisplay.classList.remove('hidden'); // 入室人数表示を初期から表示
+
+        canvasesContainer.classList.add('hidden'); // キャンバスを非表示
+        drawingToolsContainer.classList.add('hidden'); // 描画ツールを非表示
+        sendPictureButton.classList.add('hidden'); // 送信ボタンを非表示
+        standbyMessageElement.classList.add('hidden'); // 待機メッセージを非表示
+        timerDisplay.classList.add('hidden'); // タイマーを非表示
+        firstCharEl.classList.add('hidden'); // 最初の文字を非表示
+        turnOrderDisplay.classList.add('hidden'); // ターン順もゲーム開始前は非表示
         currentTurnInfo.classList.add('hidden'); // ゲーム開始前は非表示
-        enableChatInput(); // ゲーム開始前はチャット入力無効
+
+        enableChatInput(); // ゲーム開始前はチャット入力有効
+        startButton.disabled = false; // スタートボタンを有効に (ゲーム開始時のみ)
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // キャンバスをクリア
+        receivedCtx.clearRect(0, 0, receivedCanvas.width, receivedCanvas.height); // 受信キャンバスもクリア
+        drawingHistory = []; // 描画履歴をクリア
+        undoneHistory = []; // UNDO履歴をクリア
       }
+      // initializeUI() は、HTML要素が読み込まれた後に実行されるようにしてください。
+      // 例: window.onload = main; のようにmain関数全体を呼び出す
 
       initializeUI(); // ページ読み込み時に初期化
 
@@ -849,6 +860,13 @@
           players = new Set(msg.players);
           console.log('[クライアント] initを受信。現在のプレイヤー数:', players.size);
 
+          // 入室人数の表示を更新
+          if (playerCountDisplay) { // 'playerCountDisplay' が存在するなら
+            playerCountDisplay.textContent = `入室人数: ${players.size}人`;
+          } else {
+            console.error('[クライアント] playerCountDisplay要素が見つかりません。HTMLを確認してください。');
+          }
+
           // チャット履歴の表示（もしあれば）
           if (msg.chatHistory && msg.chatHistory.length > 0) {
             msg.chatHistory.forEach(chatMsg => {
@@ -863,12 +881,14 @@
           console.log(`[クライアント] player_count_updateを受信: ${msg.count}人`);
           if (playerCountDisplay) {
             playerCountDisplay.textContent = `入室人数: ${msg.count}人`;
-            playerCountDisplay.classList.remove('hidden'); // 念のため表示
           } else {
             console.error('[クライアント] playerCountDisplay要素が見つかりません。HTMLを確認してください。');
           }
-          return; // player_count_update の処理を終える
+          return;
         }
+
+
+
 
         //スタートボタンが押されたら(カワグチ)
         if (msg.type === 'start') {
@@ -931,6 +951,23 @@
             setStandbyUI(currentTurn, currentPhaseFromServer === 'drawing' ? '描画' : '回答');
           }
           return; // next_turnの処理を終える
+        }
+
+        // ゲーム終了通知 (サーバーから送信されることを想定)
+        if (msg.type === 'game_end') {
+          alert('ゲーム終了！全てのラウンドとターンが完了しました。');
+          gameStarted = false; // ゲーム終了状態に
+          isDrawingTurn = false;
+          isAnsweringTurn = false;
+          clearInterval(countdownInterval); // タイマー停止
+          timerDisplay.classList.add('hidden'); // タイマー表示を隠す
+
+          // UIを初期状態に戻す
+          initializeUI();
+
+          // 必要に応じて、最終結果の表示など
+          // 例: appendMessage('システム', '最終結果: ...', myId);
+          return;
         }
 
         if (msg.type === 'chat') {
