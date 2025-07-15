@@ -19,6 +19,7 @@ let turnOrder = [];
 let currentTurnIndex = 0;
 // ラウンドの制御(カワグチ)
 let round = 1;
+let currentPhase = 'drawing';
 
 app.use(express.static('public'))
 
@@ -175,11 +176,24 @@ function broadcast(message) {
 
 //ターンを進める(カワグチ)
 function advanceTurn() {
-  currentTurnIndex = (currentTurnIndex + 1) % turnOrder.length;
-  if (currentTurnIndex === 0) {
-    round++;
-  }
-  notifyNextTurn();
+    // 現在のフェーズが「描画中」の場合
+    if (currentPhase === 'drawing') {
+        // 次のフェーズは「回答中」
+        currentPhase = 'answering';
+        console.log(`サーバー: フェーズ移行: 描画 -> 回答 (現在ターン: ${turnOrder[currentTurnIndex]})`);
+    } 
+    // 現在のフェーズが「回答中」の場合
+    else {
+        // 次のフェーズは次のプレイヤーの「描画中」
+        currentTurnIndex = (currentTurnIndex + 1) % turnOrder.length;
+        if (currentTurnIndex === 0) {
+            round++;
+            console.log(`サーバー: ラウンド終了。次のラウンド: ${round}`);
+        }
+        currentPhase = 'drawing'; // 次の人の描画フェーズへ
+        console.log(`サーバー: フェーズ移行: 回答 -> 描画 (現在ターン: ${turnOrder[currentTurnIndex]})`);
+    }
+    notifyNextTurn(); // フェーズが進んだことをクライアントに通知
 }
 
 // 次のプレイヤーに通知(カワグチ)
