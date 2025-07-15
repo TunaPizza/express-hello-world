@@ -574,7 +574,6 @@
           currentTurnInfo.textContent = `現在のターン: あなた (描画)`;
           currentTurnInfo.classList.remove('hidden');
         }
-        if (turnStatusDisplay) turnStatusDisplay.classList.add('hidden'); // 自分のターンではターンステータスを隠す
 
         startTimer(60, () => {
           alert("描画ターン時間切れ！");
@@ -619,8 +618,8 @@
         gameControls.classList.add('hidden'); // ゲーム設定は非表示
         standbyMessageElement.classList.add('hidden'); // 待機メッセージ非表示
         canvasesContainer.classList.remove('hidden'); // キャンバス表示 (前の絵を表示するため)
-        canvas.classList.add('hidden'); // 自分の描画キャンバスは非表示
-        receivedCanvas.classList.remove('hidden'); // 受信キャンバスを表示
+      canvas.classList.add('hidden'); // 自分の描画キャンバスは非表示
+      receivedCanvas.classList.remove('hidden'); // 受信キャンバスを表示
         drawingToolsContainer.classList.add('hidden'); // 描画ツール非表示
         sendPictureButton.classList.add('hidden'); // 送信ボタン非表示
         chatForm.classList.remove('hidden'); // チャットフォーム表示
@@ -636,14 +635,13 @@
           currentTurnInfo.textContent = `現在のターン: あなた (回答)`;
           currentTurnInfo.classList.remove('hidden');
         }
-        if (turnStatusDisplay) turnStatusDisplay.classList.add('hidden'); // 自分のターンではターンステータスを隠す
- 
 
         startTimer(30, () => {
           alert("回答ターン時間切れ！");
           disableChatInput();
 
           const text = chatInput.value.trim(); // 現在の入力値を取得（空欄の場合も考慮）
+          ws.send(JSON.stringify({ id: myId, text: text, type: 'answer' }));
           console.log("回答時間切れにより送信された回答:", { id: myId, text: text });
           ws.send(JSON.stringify({ type: 'answering_time_up' }));
         });
@@ -658,8 +656,9 @@
 
         // UIの表示/非表示を切り替える
         gameControls.classList.add('hidden'); // ゲーム設定は非表示
-        canvasesContainer.classList.remove('hidden'); // キャンバス非表示
-        receivedCanvas.classList.remove('hidden'); // 他の人の描画キャンバスを表示
+      canvasesContainer.classList.remove('hidden');
+        canvasesContainer.classList.add('hidden'); // キャンバス非表示
+      receivedCanvas.classList.remove('hidden'); // 他の人の描画キャンバスを表示
         drawingToolsContainer.classList.add('hidden'); // 描画ツール非表示
         sendPictureButton.classList.add('hidden'); // 送信ボタン非表示
         standbyMessageElement.classList.remove('hidden'); // 待機メッセージ表示
@@ -669,19 +668,15 @@
         enableChatInput(); // チャット入力を有効化
 
         if (standbyMessageElement) {
-          standbyMessageElement.textContent = `${currentTurnPlayerId}さんが${phase === 'drawing' ? '描画中' : '回答中'}...`;
+          standbyMessageElement.textContent = `${currentTurnPlayerId}が${turnPhase}中...`;
         }
         chatInput.placeholder = "チャットメッセージを入力";
 
-        if (currentTurnInfo) {
-          currentTurnInfo.textContent = `現在のターン: ${currentTurnPlayerId} (${phase === 'drawing' ? '描画中' : '回答中'})`;
-          currentTurnInfo.classList.remove('hidden');
-        }
-        if (turnStatusDisplay) {
-          // ★修正: ターンステータスを日本語に
-          turnStatusDisplay.textContent = `現在、${currentTurnPlayerId}さんが${phase === 'drawing' ? '描画中' : '回答中'}です。`;
-          turnStatusDisplay.classList.remove('hidden');
-        }
+    if (currentTurnInfo) {
+        
+        currentTurnInfo.textContent = `現在のターン: ${currentTurnPlayerId} (${turnPhase})`;
+        currentTurnInfo.classList.remove('hidden');
+    }
       }
 
       // チャット入力の有効/無効を切り替える関数(オガワ)
@@ -883,33 +878,32 @@
               : `<span>${id}</span>`;
           }).join(' → ');
           turnOrderDisplay.classList.remove('hidden');
-          if (roundDisplay) { // roundDisplay要素があれば
-            roundDisplay.textContent = `ラウンド: ${round}`;
-            roundDisplay.classList.remove('hidden');
-          }
+            if (roundDisplay) { // roundDisplay要素があれば
+        roundDisplay.textContent = `ラウンド: ${round}`;
+        roundDisplay.classList.remove('hidden');
+    }
 
-          // 最初の文字は、ゲーム開始時以外は非表示にする
-          if (firstCharEl) {
-            firstCharEl.classList.add('hidden');
-          }
+        // 最初の文字は、ゲーム開始時以外は非表示にする
+    if (firstCharEl) {
+        firstCharEl.classList.add('hidden');
+    }
 
           // 必要に応じてUI切り替えもここで実行
-          if (currentTurn === myId) {
-            // 自分のターンならフェーズに基づいてUIを切り替え
-            if (phase === 'drawing') {
-              setDrawingTurnUI();
-            } else if (phase === 'answering') {
-              setAnsweringTurnUI();
-            }
-            if (currentTurnInfo) currentTurnInfo.classList.add('hidden'); // 自分の番ではステータスを隠す
-            if (standbyMessageElement) standbyMessageElement.classList.add('hidden'); // 自分の番では待機メッセージを隠す
-            if (turnStatusDisplay) turnStatusDisplay.classList.add('hidden'); // 自分のターンではターンステータスを隠す
-          } else {
-            // 他の人のターンなら待機UIに切り替え
-            setStandbyUI(currentTurn, phase); // ★phaseを渡す
-          }
-          return;
+        if (currentTurn === myId) {
+        // 自分のターンならフェーズに基づいてUIを切り替え
+        if (phase === 'drawing') {
+            setDrawingTurnUI();
+        } else if (phase === 'answering') {
+            setAnsweringTurnUI();
         }
+        if (currentTurnInfo) currentTurnInfo.classList.add('hidden'); // 自分の番ではステータスを隠す
+        if (standbyMessageElement) standbyMessageElement.classList.add('hidden'); // 自分の番では待機メッセージを隠す
+    } else {
+        // 他の人のターンなら待機UIに切り替え
+        setStandbyUI(currentTurn, phase); // ★phaseを渡す
+    }
+    return;
+}
 
         if (msg.type === 'chat') {
           const { id, text } = msg
@@ -966,6 +960,8 @@
             input.value = ''
             input.focus()
 
+            console.log('sending turn_end');
+            ws.send(JSON.stringify({ type: 'turn_end' }));
 
           }
           //回答送信後次の人の絵のターンへ
@@ -985,9 +981,11 @@
           currentDrawingData = canvas.toDataURL('image/png');
           drawnImages.push(currentDrawingData);
           console.log("保存された画像:" + drawnImages)
+
           // 描かれた画像をサーバーに送信
           ws.send(JSON.stringify({ type: 'image_sended', imageData: currentDrawingData }));
 
+          setAnsweringTurnUI();
           ws.send(JSON.stringify({ type: 'drawing_completed' })); // サーバーに描画完了を通知(カワグチ追加)
 
         }
