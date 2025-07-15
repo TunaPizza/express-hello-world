@@ -849,13 +849,6 @@
           players = new Set(msg.players);
           console.log('[クライアント] initを受信。現在のプレイヤー数:', players.size);
 
-          // 入室人数の表示を更新
-          if (playerCountDisplay) { // 'playerCountDisplay' が存在するなら
-            playerCountDisplay.textContent = `入室人数: ${players.size}人`;
-          } else {
-            console.error('[クライアント] playerCountDisplay要素が見つかりません。HTMLを確認してください。');
-          }
-
           // チャット履歴の表示（もしあれば）
           if (msg.chatHistory && msg.chatHistory.length > 0) {
             msg.chatHistory.forEach(chatMsg => {
@@ -870,14 +863,12 @@
           console.log(`[クライアント] player_count_updateを受信: ${msg.count}人`);
           if (playerCountDisplay) {
             playerCountDisplay.textContent = `入室人数: ${msg.count}人`;
+            playerCountDisplay.classList.remove('hidden'); // 念のため表示
           } else {
             console.error('[クライアント] playerCountDisplay要素が見つかりません。HTMLを確認してください。');
           }
-          return;
+          return; // player_count_update の処理を終える
         }
-
-
-
 
         //スタートボタンが押されたら(カワグチ)
         if (msg.type === 'start') {
