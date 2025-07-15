@@ -121,8 +121,8 @@ app.ws('/ws', (ws, req) => {
                 notifyNextTurn(); // 回答フェーズになったことをクライアントに通知
             } else if (msg.type === 'answering_time_up' && currentPhase === 'answering') {
                 advanceTurn(); // 次のプレイヤーの描画フェーズへ
+                return;
             }
-            return;
         
 
     //チャットや回答(カワグチ)
