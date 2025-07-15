@@ -951,6 +951,22 @@
           return; // next_turnの処理を終える
         }
 
+        if (msg.type === 'game_end') {
+          alert('ゲーム終了！全てのラウンドとターンが完了しました。');
+          gameStarted = false; // ゲーム終了状態に
+          isDrawingTurn = false;
+          isAnsweringTurn = false;
+          clearInterval(countdownInterval); // タイマー停止
+          timerDisplay.classList.add('hidden'); // タイマー表示を隠す
+
+          // UIを初期状態に戻す
+          initializeUI();
+
+          // 必要に応じて、最終結果の表示など
+          // 例: appendMessage('システム', '最終結果: ...', myId);
+          return;
+        }
+        
         if (msg.type === 'chat') {
           const { id, text } = msg
           //appendMessage関数でまとめた(カワグチ)
