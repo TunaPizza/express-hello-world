@@ -216,7 +216,7 @@
 
   <!-- ルームの状況(カワグチ) -->
   <div id="gameStatus" style="font-size: 20px; font-weight: bold; margin: 10px 0;">
-    <span id="firstChar" style="display: none;">最初の文字は </span>
+    <span id="firstChar"">最初の文字は </span>
     <span id="playerCountDisplay"></span>
     <br />
     <!-- 誰のターンか(カワグチ) -->
@@ -313,7 +313,7 @@
         sendPictureButton.classList.add('hidden');
         standbyMessageElement.classList.add('hidden');
         timerDisplay.classList.add('hidden');
-        firstCharEl.classList.remove('hidden');
+        firstCharEl.classList.add('hidden');
         turnOrderDisplay.classList.remove('hidden'); // プレイヤー数とターン順は常に表示
         currentTurnInfo.classList.add('hidden'); // ゲーム開始前は非表示
         enableChatInput(); // ゲーム開始前はチャット入力無効
