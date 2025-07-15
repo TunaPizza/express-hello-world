@@ -123,7 +123,7 @@ app.ws('/ws', (ws, req) => {
                 advanceTurn(); // 次のプレイヤーの描画フェーズへ
             }
             return;
-        }
+        
 
     //チャットや回答(カワグチ)
     if (msg.type === 'chat' || msg.type === 'answer') {
