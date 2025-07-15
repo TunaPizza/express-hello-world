@@ -139,7 +139,7 @@ app.ws('/ws', (ws, req) => {
       return;
     }
 
-    broadcast(message);
+   // broadcast(message);
   })
 
   ws.on('close', () => {
