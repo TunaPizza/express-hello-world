@@ -220,7 +220,9 @@
     <span id="playerCountDisplay"></span>
     <br />
     <!-- 誰のターンか(カワグチ) -->
-    <span id="currentTurnInfo"></span><span id="turnOrderDisplay" style="display: inline;"></span>
+    <span id="currentTurnInfo"></span>
+    <span id="turnOrderDisplay" style="display: inline;"></span>
+    <span id="roundInfo"></span>
   </div>
 
   <!-- 時間制限の表示(オガワ) -->
@@ -288,6 +290,7 @@
 
       const turnOrderDisplay = document.getElementById('turnOrderDisplay');
       const currentTurnInfo = document.getElementById('currentTurnInfo'); // 追加
+      const roundInfo = document.getElementById('roundInfo');
 
       const playerCountDisplay = document.getElementById('playerCountDisplay');
 
@@ -318,6 +321,7 @@
         firstCharEl.classList.add('hidden'); // 最初の文字を非表示
         turnOrderDisplay.classList.add('hidden'); // ターン順もゲーム開始前は非表示
         currentTurnInfo.classList.add('hidden'); // ゲーム開始前は非表示
+        roundInfo.classList.add('hidden'); //ラウンド非表示
 
         enableChatInput(); // ゲーム開始前はチャット入力有効
         startButton.disabled = false; // スタートボタンを有効に (ゲーム開始時のみ)
@@ -629,6 +633,7 @@
         drawingToolsContainer.classList.remove('hidden'); // 描画ツール表示
         sendPictureButton.classList.remove('hidden'); // 送信ボタン表示
         chatForm.classList.add('hidden'); // チャットフォーム非表示（描画中は回答のみ）
+        roundInfo.classList.remove('hidden');
 
         enableDrawingTools(); // 描画ツールを有効化
         ctx.clearRect(0, 0, canvas.width, canvas.height); // 自分のキャンバスをクリア
@@ -688,6 +693,7 @@
         drawingToolsContainer.classList.add('hidden'); // 描画ツール非表示
         sendPictureButton.classList.add('hidden'); // 送信ボタン非表示
         chatForm.classList.remove('hidden'); // チャットフォーム表示
+        roundInfo.classList.remove('hidden');
 
         disableDrawingTools(); // 描画ツールは無効化
         enableChatInput(); // チャット入力を有効化
@@ -725,6 +731,7 @@
         sendPictureButton.classList.add('hidden'); // 送信ボタン非表示
         standbyMessageElement.classList.remove('hidden'); // 待機メッセージ表示
         chatForm.classList.remove('hidden'); // チャットフォーム表示
+        roundInfo.classList.remove('hidden');
 
         disableDrawingTools(); // 描画ツールは無効化
         enableChatInput(); // チャット入力を有効化
@@ -896,6 +903,7 @@
 
           firstCharEl.textContent = '最初の文字: ' + msg.firstChar;
           firstCharEl.classList.remove('hidden');
+          roundInfo.classList.remove('hidden');
 
           const turnOrder = msg.turnOrder;
           const currentTurn = turnOrder[0];
@@ -905,6 +913,7 @@
             return `<span class="${isCurrent ? 'current-turn-player' : ''}">${id}</span>`;
           }).join(' → ');
           turnOrderDisplay.classList.remove('hidden');
+          roundInfo.textContent = `ラウンド: ${msg.currentRound} / ${msg.totalRounds}`;
 
           // デバッグ用に表示
           console.log("最初の文字:", msg.firstChar);
@@ -934,6 +943,8 @@
               : `<span>${id}</span>`;
           }).join(' → ');
           turnOrderDisplay.classList.remove('hidden');
+          roundInfo.textContent = `ラウンド: ${currentRound} / ${totalRounds}`;
+          roundInfo.classList.remove('hidden');
 
           // 必要に応じてUI切り替えもここで実行
           if (currentTurn === myId) {
@@ -966,7 +977,7 @@
           // 例: appendMessage('システム', '最終結果: ...', myId);
           return;
         }
-        
+
         if (msg.type === 'chat') {
           const { id, text } = msg
           //appendMessage関数でまとめた(カワグチ)
