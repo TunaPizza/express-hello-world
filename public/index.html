@@ -917,6 +917,8 @@
         if (msg.type === 'next_turn') {
           const currentTurn = msg.currentTurn;
           const turnOrder = msg.turnOrder;
+          const currentPhaseFromServer = msg.phase;
+
           turnOrderDisplay.innerHTML = 'ターン順: ' + turnOrder.map(id => {
             return id === currentTurn
               ? `<span style="color: red; font-weight: bold;">${id}</span>`
@@ -926,12 +928,18 @@
 
           // 必要に応じてUI切り替えもここで実行
           if (currentTurn === myId) {
-            // 自分のターンなら描画ターンUIに切り替え
-            setDrawingTurnUI();
+            // 自分のターン
+            if (currentPhaseFromServer === 'drawing') {
+              setDrawingTurnUI(); // 描画ターンUIに切り替え
+            } else if (currentPhaseFromServer === 'answering') {
+              setAnsweringTurnUI(); // 回答ターンUIに切り替え
+            }
           } else {
-            // 他の人のターンならチャットモードなどにする
-            setStandbyUI(currentTurn, '描画');
+            // 他の人のターン（待機画面）
+            // サーバーから送られてきたフェーズ情報に基づいて、待機メッセージを調整
+            setStandbyUI(currentTurn, currentPhaseFromServer === 'drawing' ? '描画' : '回答');
           }
+          return; // next_turnの処理を終える
         }
 
         if (msg.type === 'chat') {
