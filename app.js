@@ -203,7 +203,8 @@ function notifyNextTurn() {
     type: 'next_turn',
     currentTurn: currentPlayer,
     turnOrder: turnOrder,
-    round: round
+    round: round,
+     phase: currentPhase
   });
   broadcast(turnMsg);
 }
