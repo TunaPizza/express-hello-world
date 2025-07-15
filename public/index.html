@@ -340,12 +340,19 @@
         const turn = document.getElementById('turnSelect').value
         const playerCount = players.size
 
+        const totalRoundsSelected = parseInt(round, 10); // "3" -> 3
+        const totalTurnsPerRoundSelected = parseInt(turn, 10); // "2" -> 2
+
         const confirmed = confirm(
           `入室人数: ${playerCount}人\nラウンド数: ${round}ラウンド\nターン数: ${turn}ターン\n\nゲームを開始しますか？`
         )
 
         if (confirmed) {
-          ws.send(JSON.stringify({ type: 'start' }))
+          ws.send(JSON.stringify({
+            type: 'start',
+            totalRounds: totalRoundsSelected,           // ここでサーバーに数値として総ラウンド数を送る
+            totalTurnsPerRound: totalTurnsPerRoundSelected // ここでサーバーに数値として1ラウンドあたりの総ターン数を送る
+          }))
 
           gameStarted = true; //ゲーム開始状態にする(オガワ)
           //ゲーム開始時は描画ターン(オガワ)
