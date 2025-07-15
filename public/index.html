@@ -574,6 +574,7 @@
           currentTurnInfo.textContent = `現在のターン: あなた (描画)`;
           currentTurnInfo.classList.remove('hidden');
         }
+        if (turnStatusDisplay) turnStatusDisplay.classList.add('hidden'); // 自分のターンではターンステータスを隠す
 
         startTimer(60, () => {
           alert("描画ターン時間切れ！");
@@ -635,13 +636,14 @@
           currentTurnInfo.textContent = `現在のターン: あなた (回答)`;
           currentTurnInfo.classList.remove('hidden');
         }
+        if (turnStatusDisplay) turnStatusDisplay.classList.add('hidden'); // 自分のターンではターンステータスを隠す
+ 
 
         startTimer(30, () => {
           alert("回答ターン時間切れ！");
           disableChatInput();
 
           const text = chatInput.value.trim(); // 現在の入力値を取得（空欄の場合も考慮）
-          ws.send(JSON.stringify({ id: myId, text: text, type: 'answer' }));
           console.log("回答時間切れにより送信された回答:", { id: myId, text: text });
           ws.send(JSON.stringify({ type: 'answering_time_up' }));
         });
@@ -656,8 +658,7 @@
 
         // UIの表示/非表示を切り替える
         gameControls.classList.add('hidden'); // ゲーム設定は非表示
-        canvasesContainer.classList.remove('hidden');
-        canvasesContainer.classList.add('hidden'); // キャンバス非表示
+        canvasesContainer.classList.remove('hidden'); // キャンバス非表示
         receivedCanvas.classList.remove('hidden'); // 他の人の描画キャンバスを表示
         drawingToolsContainer.classList.add('hidden'); // 描画ツール非表示
         sendPictureButton.classList.add('hidden'); // 送信ボタン非表示
@@ -902,6 +903,7 @@
             }
             if (currentTurnInfo) currentTurnInfo.classList.add('hidden'); // 自分の番ではステータスを隠す
             if (standbyMessageElement) standbyMessageElement.classList.add('hidden'); // 自分の番では待機メッセージを隠す
+            if (turnStatusDisplay) turnStatusDisplay.classList.add('hidden'); // 自分のターンではターンステータスを隠す
           } else {
             // 他の人のターンなら待機UIに切り替え
             setStandbyUI(currentTurn, phase); // ★phaseを渡す
@@ -964,8 +966,6 @@
             input.value = ''
             input.focus()
 
-            console.log('sending turn_end');
-            ws.send(JSON.stringify({ type: 'turn_end' }));
 
           }
           //回答送信後次の人の絵のターンへ
@@ -989,7 +989,6 @@
           // 描かれた画像をサーバーに送信
           ws.send(JSON.stringify({ type: 'image_sended', imageData: currentDrawingData }));
 
-          setAnsweringTurnUI();
           ws.send(JSON.stringify({ type: 'drawing_completed' })); // サーバーに描画完了を通知(カワグチ追加)
 
         }
