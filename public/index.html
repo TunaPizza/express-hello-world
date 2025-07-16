@@ -314,6 +314,11 @@
       const cursorCanvas = document.getElementById('cursorCanvas');
       const cursorCtx = cursorCanvas.getContext('2d');
 
+      //オタニ
+      const colorPicker = document.getElementById('colorPicker');
+      const lineWidthSlider = document.getElementById('lineWidthSlider');
+      const eraserToggle = document.getElementById('eraserToggle');
+
       //描画モードか、回答入力モードか(オガワ)
       let isDrawingTurn = false; //絵を描くターンかどうか
       let isAnsweringTurn = false; //回答入力ターンかどうか
@@ -398,9 +403,7 @@
       updateCursorCanvasPosition();
 
       //ColorPickerの色、線の太さ、消しゴムをcanvasに反映させる(オタニ追加)
-      const colorPicker = document.getElementById('colorPicker');
-      const lineWidthSlider = document.getElementById('lineWidthSlider');
-      const eraserToggle = document.getElementById('eraserToggle');
+
 
       ctx.strokeStyle = colorPicker.value;
       ctx.lineWidth = lineWidthSlider.value;
