@@ -366,6 +366,7 @@
         turnOrderDisplay.classList.remove('hidden'); // プレイヤー数とターン順は常に表示
         currentTurnInfo.classList.add('hidden'); // ゲーム開始前は非表示
         enableChatInput(); // ゲーム開始前はチャット入力有効（チャットフォームは表示されるため）
+        playerCountDisplay.classList.remove('hidden');
       }
 
       initializeUI(); // ページ読み込み時に初期化
