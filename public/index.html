@@ -950,8 +950,7 @@
               : `<span>${id}</span>`;
           }).join(' → ');
           turnOrderDisplay.classList.remove('hidden');
-          roundInfo.textContent = `ラウンド: ${currentRound} / ${totalRounds}`;
-          roundInfo.classList.remove('hidden');
+          roundInfo.textContent = `ラウンド: ${msg.currentRound} / ${msg.totalRounds} (ターン: ${msg.currentTurnNumber} / ${msg.totalTurnsPerRound})`; roundInfo.classList.remove('hidden');
 
           // 必要に応じてUI切り替えもここで実行
           if (currentTurn === myId) {
