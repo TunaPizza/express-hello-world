@@ -373,16 +373,16 @@
 
       // ゲーム開始ボタンが押されたら(カワグチ)
       startButton.onclick = () => {
-        const round = document.getElementById('roundSelect').value
+       
         const turn = document.getElementById('turnSelect').value
         const playerCount = players.size
 
         const confirmed = confirm(
-          `入室人数: ${playerCount}人\nラウンド数: ${round}ラウンド\nターン数: ${turn}ターン\n\nゲームを開始しますか？`
+          `入室人数: ${playerCount}人\nターン数: ${turn}ターン\n\nゲームを開始しますか？`
         )
 
         if (confirmed) {
-          ws.send(JSON.stringify({ type: 'start', rounds: parseInt(round), turns: parseInt(turn) }))
+          ws.send(JSON.stringify({ type: 'start', turns: parseInt(turn) }))
 
           gameStarted = true; //ゲーム開始状態にする(オガワ)
           //ゲーム開始時は描画ターン(オガワ)
