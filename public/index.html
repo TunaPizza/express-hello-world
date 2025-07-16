@@ -304,6 +304,16 @@
 
       const timerDisplay = document.getElementById('timerDisplay');
 
+      //2つのキャンバスとコンテキストを取得(オガワ)
+      const receivedCanvas = document.getElementById('receivedCanvas');
+      const receivedCtx = receivedCanvas.getContext('2d');
+      const canvas = document.getElementById('canvas')
+      const ctx = canvas.getContext('2d')
+
+      //カーソルガイドのコンテキストを取得(オタニ追加)
+      const cursorCanvas = document.getElementById('cursorCanvas');
+      const cursorCtx = cursorCanvas.getContext('2d');
+
       //描画モードか、回答入力モードか(オガワ)
       let isDrawingTurn = false; //絵を描くターンかどうか
       let isAnsweringTurn = false; //回答入力ターンかどうか
@@ -377,15 +387,7 @@
 
 
       //
-      //2つのキャンバスとコンテキストを取得(オガワ)
-      const receivedCanvas = document.getElementById('receivedCanvas');
-      const receivedCtx = receivedCanvas.getContext('2d');
-      const canvas = document.getElementById('canvas')
-      const ctx = canvas.getContext('2d')
 
-      //カーソルガイドのコンテキストを取得(オタニ追加)
-      const cursorCanvas = document.getElementById('cursorCanvas');
-      const cursorCtx = cursorCanvas.getContext('2d');
 
       // 右の #canvas を基準に座標調整(オタニ追加)
       function updateCursorCanvasPosition() {
