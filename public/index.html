@@ -261,6 +261,7 @@
 
       //入室しているユーザー管理(重複を許さない)(カワグチ)
       let players = new Set()
+      console.log('初期players:', Array.from(players));
 
       //ゲーム開始状態を管理(オガワ)
       let gameStarted = false;
@@ -942,6 +943,7 @@
           // 入室したユーザーをセットに追加(カワグチ)
           players.add(msg.id)
           //入室人数の更新(カワグチ)
+          console.log(`[クライアント] ${msg.id} がjoin後のplayers:`, Array.from(players));
 
           appendMessage('システム', `${msg.id}が入室しました`, myId); // 回答もチャットに表示
           return

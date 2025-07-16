@@ -196,7 +196,8 @@ function broadcastPlayerCount() {
   const playerCount = players.size; // 登録されているユニークなプレイヤーIDの数
   const message = JSON.stringify({
     type: 'player_count_update', // 新しいメッセージタイプ
-    count: playerCount
+    count: playerCount,
+    players: Array.from(players)
   });
   connects.forEach((socket) => {
     if (socket.readyState === 1) { // OPEN状態のソケットにのみ送信
