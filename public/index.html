@@ -323,6 +323,10 @@
       let isDrawingTurn = false; //絵を描くターンかどうか
       let isAnsweringTurn = false; //回答入力ターンかどうか
 
+      //(オタニ)
+      let drawing = false;
+      let eraserMode = false;
+
       // --- 初期設定(カワグチ) ---
       function initializeUI() {
         gameStarted = false;
@@ -416,8 +420,7 @@
         ctx.lineWidth = lineWidthSlider.value;
       });
 
-      let drawing = false;
-      let eraserMode = false;
+
 
       //トグル(オタニ追加)
       eraserToggle.addEventListener('click', () => {
@@ -455,7 +458,7 @@
         ctx.beginPath();
       }
 
-      
+
       //マウスが動いた時にカーソルガイドを描画(オタニ追加)
       canvas.addEventListener('mousemove', (e) => {
         if (!gameStarted || !isDrawingTurn) return;
