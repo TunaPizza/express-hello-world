@@ -322,7 +322,7 @@
       let drawing = false;
       let eraserMode = false;
 
-          //制限時間を設けるための処理(オガワ)
+      //制限時間を設けるための処理(オガワ)
       let countdownInterval = null; //タイマーIDを保持する関数
       // --- 初期設定(カワグチ) ---
       function initializeUI() {
@@ -352,6 +352,13 @@
           clearInterval(countdownInterval);
           countdownInterval = null;
         }
+        const existingRestartButton = document.querySelector('#standbyMessage + button');
+        if (existingRestartButton) {
+          existingRestartButton.remove();
+        }
+        chatInput.placeholder = "チャットメッセージを入力"; // この行を追加
+        chatInput.value = ''; // 入力値もクリア
+
         // timeRemaining = 0; // この行はコメントアウトしました。ゲームの状態によって適切に設定されるため、ここでリセットしない方が良い場合が多いです。
 
         // ゲーム開始前は、ゲームコントロールとチャットフォームのみ表示
@@ -363,7 +370,7 @@
         standbyMessageElement.classList.add('hidden');
         timerDisplay.classList.add('hidden');
         firstCharEl.classList.add('hidden');
-        turnOrderDisplay.classList.remove('hidden'); // プレイヤー数とターン順は常に表示
+        turnOrderDisplay.classList.add('hidden'); // プレイヤー数とターン順は常に表示
         currentTurnInfo.classList.add('hidden'); // ゲーム開始前は非表示
         enableChatInput(); // ゲーム開始前はチャット入力有効（チャットフォームは表示されるため）
         playerCountDisplay.classList.remove('hidden');
@@ -373,7 +380,7 @@
 
       // ゲーム開始ボタンが押されたら(カワグチ)
       startButton.onclick = () => {
-       
+
         const turn = document.getElementById('turnSelect').value
         const playerCount = players.size
 
