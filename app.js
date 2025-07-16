@@ -21,10 +21,12 @@ let currentTurnIndex = 0;
 let round = 1;
 let currentPhase = 'drawing';
 
-let totalRounds = 3; // ゲーム全体の総ラウンド数 (初期値)
-let currentTurnNumberInRound = 1; // 現在のラウンドにおけるターン数
-let totalTurnsPerRound = 0; // 1ラウンドあたりの総ターン数 (初期値)
-
+let gameStarted = false; // ゲームが開始されているか(オガワ)
+let gameConfig = { // ゲーム設定(オガワ)
+  rounds: 0,
+  turnsPerRound: 0,
+  totalTurnsElapsed: 0 // 経過した総ターン数(オガワ)
+};
 
 app.use(express.static('public'))
 
@@ -62,31 +64,29 @@ app.ws('/ws', (ws, req) => {
     }
 
     if (msg.type === 'start') {
+      //エラーメッセージ(オガワ)
+      if (gameStarted) {
+        ws.send(JSON.stringify({ type: 'error', message: 'ゲームはすでに開始されています。' }));
+        return;
+      }
+      if (players.size === 0) {
+        ws.send(JSON.stringify({ type: 'error', message: 'プレイヤーがいません。' }));
+        return;
+      }
+
+      // クライアントから送られてきたラウンド数とターン数を受け取る(オガワ)
+      gameConfig.rounds = parseInt(msg.rounds);
+      gameConfig.turnsPerRound = parseInt(msg.turns);
+      gameConfig.totalTurnsElapsed = 0; // ゲーム開始時に経過ターン数をリセット
+
       // ひらがな1文字をランダムに選ぶ(カワグチ)
       const firstChar = getRandomHiragana();
       const shuffledPlayers = Array.from(players).sort(() => Math.random() - 0.5);
       console.log('Sending start message with turnOrder:', shuffledPlayers);
       turnOrder = shuffledPlayers;
       currentTurnIndex = 0;
-      round = 1; 
-      currentTurnNumberInRound = 1;
       currentPhase = 'drawing';
-
-        if (msg.totalRounds) {
-                totalRounds = msg.totalRounds;
-                console.log(`ゲーム開始: 総ラウンド数をクライアントから ${totalRounds} に設定しました。`);
-            } else {
-                totalRounds = 3; // デフォルト値
-                console.log(`ゲーム開始: 総ラウンド数が指定されなかったため、デフォルトの ${totalRounds} を使用します。`);
-            }
-
-                      if (msg.totalTurnsPerRound) {
-                totalTurnsPerRound = msg.totalTurnsPerRound;
-                console.log(`ゲーム開始: 1ラウンドあたりの総ターン数をクライアントから ${totalTurnsPerRound} に設定しました。`);
-            } else {
-                totalTurnsPerRound = players.size > 0 ? players.size : 1; // プレイヤーがいない場合は最低1ターン
-                console.log(`ゲーム開始: 1ラウンドあたりの総ターン数が指定されなかったため、デフォルトのプレイヤー数 ${totalTurnsPerRound} を使用します。`);
-            }
+      gameStarted = true; // ゲームを開始状態にする
 
       // 全接続にゲーム開始通知を送る(カワグチ)
       connects.forEach((socket) => {
@@ -96,10 +96,11 @@ app.ws('/ws', (ws, req) => {
             firstChar: firstChar,
             turnOrder: shuffledPlayers,
             remainingTime: 60,
-            currentRound: round, //roundを使用
-                        totalRounds: totalRounds, // totalRounds を含める
-                        currentTurnNumber: currentTurnNumberInRound, //currentTurnNumberInRound を含める
-                        totalTurnsPerRound: totalTurnsPerRound, // totalTurnsPerRound を含める
+
+            currentTurn: turnOrder[currentTurnIndex], // 最初のターンのプレイヤーも送る
+            phase: currentPhase, // 最初のフェーズも送る
+            rounds: gameConfig.rounds, // 設定されたラウンド数を送る
+            turns: gameConfig.turnsPerRound // 設定されたターン数を送る
           }));
         }
       });
@@ -216,13 +217,14 @@ function resetGameState() {
   chatHistory = [];
   turnOrder = [];
   currentTurnIndex = 0;
-  round = 1; // round を初期化
-    currentTurnNumberInRound = 1; // ターン数を初期化
-    totalTurnsPerRound = 0; //  1ラウンドあたりの総ターン数を初期化
-    currentPhase = 'drawing'; // フェーズを初期化
-    totalRounds = 3; //  totalRoundsもデフォルト値にリセット
-    totalTurnsPerRound = 0; //  totalTurnsPerRoundもデフォルト値にリセット
-  
+  round = 1;
+
+  gameStarted = false; // ゲーム状態もリセット
+  gameConfig = { // gameConfigもリセット
+    rounds: 0,
+    turnsPerRound: 0,
+    totalTurnsElapsed: 0
+  };
 }
 
 
@@ -239,23 +241,22 @@ function broadcast(message) {
 function advanceTurn() {
   // 現在のフェーズが「回答中」の場合にのみ、次のプレイヤーへターンを進める
   if (currentPhase === 'answering') {
-    currentTurnIndex = (currentTurnIndex + 1) % turnOrder.length;
-          if (currentTurnNumberInRound > totalTurnsPerRound) {
-            // ラウンド内の全ターンが完了
-            currentTurnNumberInRound = 1; // ☆修正: 次のラウンドの最初のターンにリセット
+    gameConfig.totalTurnsElapsed++; // ターンを進めるたびに加算
+    console.log(`[サーバー] 経過総ターン数: ${gameConfig.totalTurnsElapsed} / ${gameConfig.rounds * gameConfig.turnsPerRound}`);
 
-            if (round < totalRounds) {
-                round++; // ☆修正: 次のラウンドへ
-                console.log(`サーバー: ラウンド終了。次のラウンド: ${round}`);
-            } else {
-                // 全てのラウンドが終了した
-                console.log("サーバー: 全てのラウンドが終了しました。ゲーム終了。");
-                broadcast(JSON.stringify({ type: 'game_end', message: '全てのラウンドとターンが完了しました。' }));
-                resetGameState(); // ☆修正: ゲーム終了時に状態をリセットする
-                return; // ゲーム終了のためこれ以上ターンを進めない
-            }
-        }
-    
+    // ゲーム終了条件の判定
+    if (gameConfig.totalTurnsElapsed >= gameConfig.turnsPerRound * players.size) {
+      console.log('[サーバー] 設定された総ターン数に達しました。ゲームを終了します。');
+      broadcast(JSON.stringify({ type: 'game_end', message: 'ゲーム終了！設定されたターン数に達しました。' }));
+      resetGameState(); // ゲーム終了後に状態をリセット
+      return; // ゲーム終了のため、これ以上ターンを進めない
+    }
+
+    currentTurnIndex = (currentTurnIndex + 1) % turnOrder.length;
+    if (currentTurnIndex === 0) {
+      round++;
+      console.log(`サーバー: ラウンド終了。次のラウンド: ${round}`);
+    }
     currentPhase = 'drawing'; // 次の人の描画フェーズへ
     console.log(`サーバー: フェーズ移行: 回答 -> 描画 (現在ターン: ${turnOrder[currentTurnIndex]})`);
   }
@@ -276,11 +277,8 @@ function notifyNextTurn() {
     turnOrder: turnOrder,
     round: round,
     phase: currentPhase,
-     currentRound: round, // round を使用
-        totalRounds: totalRounds, // totalRounds を含める
-        currentTurnNumber: currentTurnNumberInRound, //  currentTurnNumberInRound を含める
-        totalTurnsPerRound: totalTurnsPerRound, //  totalTurnsPerRound を含める
- 
+    totalTurnsElapsed: gameConfig.totalTurnsElapsed, // 経過ターン数をクライアントに送る
+    maxTotalTurns: gameConfig.turnsPerRound * players.size // 最大総ターン数をクライアントに送る
   });
   broadcast(turnMsg);
 }
