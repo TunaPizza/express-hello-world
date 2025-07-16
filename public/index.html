@@ -327,6 +327,8 @@
       let drawing = false;
       let eraserMode = false;
 
+          //制限時間を設けるための処理(オガワ)
+      let countdownInterval = null; //タイマーIDを保持する関数
       // --- 初期設定(カワグチ) ---
       function initializeUI() {
         gameStarted = false;
@@ -607,8 +609,6 @@
         ws.send(message);
       }
 
-      //制限時間を設けるための処理(オガワ)
-      let countdownInterval; //タイマーIDを保持する関数
 
       function startTimer(duration, onTimeout) {
         let timer = duration;
