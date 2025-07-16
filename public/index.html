@@ -986,6 +986,9 @@
           restartButton.textContent = 'もう一度プレイする';
           restartButton.onclick = () => {
             initializeUI(); // 初期状態に戻す
+            const turn = document.getElementById('turnSelect').value;
+            ws.send(JSON.stringify({ type: 'start', turns: parseInt(turn) })); // ゲーム開始メッセージをサーバーに送信
+
           };
           standbyMessageElement.parentNode.insertBefore(restartButton, standbyMessageElement.nextSibling);
 
